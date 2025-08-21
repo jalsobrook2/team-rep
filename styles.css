@@ -1,0 +1,74 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  background: #f9f9f9;
+  color: #222;
+}
+
+header, footer {
+  background: #2c3e50;
+  color: #fff;
+  padding: 1em 0;
+  text-align: center;
+}
+
+header nav {
+  margin-top: 0.5em;
+}
+
+header button, nav button {
+  background: #3498db;
+  color: #fff;
+  border: none;
+  margin: 0 0.3em;
+  padding: 0.5em 1.2em;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background 0.2s;
+}
+
+header button:hover, nav button:hover {
+  background: #217dbb;
+}
+
+main {
+  max-width: 600px;
+  margin: 2em auto;
+  background: #fff;
+  padding: 2em;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(44,62,80,0.08);
+}
+
+input[type="text"] {
+  padding: 0.5em;
+  font-size: 1em;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  margin-right: 0.5em;
+}
+
+button#addItem {
+  background: #27ae60;
+}
+
+button#addItem:hover {
+  background: #219150;
+}
+
+ul#myList {
+  list-style: disc inside;
+  margin-top: 1em;
+  padding-left: 0;
+}
+
+ul#myList li {
+  padding: 0.4em 0;
+  border-bottom: 1px solid #eee;
+}
+
+footer {
+  margin-top: 2em;
+  font-size: 0.95em;
+}
