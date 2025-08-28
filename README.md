@@ -1,30 +1,36 @@
-# Web Project
-This project includes a static homepage and three linked pages (About, Contact, Register), as well as an interactive page that allows users to add items to a list using JavaScript. The project is structured with clean, semantic HTML, linked CSS, and external JavaScript.
+## **CSC425 Deliverable 2: User Research & Problem Definition Submission**
 
-## Project Structure
-```
-web-project
-├── index.html
-├── about.html
-├── contact.html
-├── register.html
-├── dynamic.html
-├── styles.css
-├── script.js
-└── README.md
-```
+**Student Name:** Ty McMullen  
+**Branch Name:** TM-Branch  
+**Date Submitted:** August 28, 2025
 
-## Description of Files
-- **index.html**: The homepage with links to the About, Contact, and Register pages.
-- **about.html**: A page that provides information about the website.
-- **contact.html**: A page for users to learn how to contact the website owner.
-- **register.html**: A page for user registration.
-- **dynamic.html**: An interactive page where users can add items to a list.
-- **styles.css**: The stylesheet for styling the HTML pages.
-- **script.js**: The JavaScript file that adds interactivity to the dynamic page.
+### **Target User Group**
 
-## How to Use
-1. Clone the repository or download the project files.
-2. Open `index.html` in a web browser to view the homepage.
-3. Navigate through the links to explore the About, Contact, Register, and Dynamic pages.
-4. On the Dynamic page, enter text in the input field and click "Add Item" to see the list update.
+> **Local Gig Workers and Task Requesters**  
+> Busy professionals needing task assistance and people seeking flexible, global & local side work opportunities, with emphasis on safety and accessibility.
+
+### **Problem Description**
+
+Current gig economy platforms lack local focus and have significant safety vulnerabilities that disproportionately affect women and differently-abled workers. Existing platforms like Fiverr emphasize remote work but offer poor local job discovery, while ride-share and delivery apps are too narrowly focused. Users struggle to find safe opportunities for diverse tasks like tutoring, landscaping, tech help, and household services.
+
+### **Evidence of the Problem**
+
+- According to Human Rights Watch (2025), **major gig platforms use opaque algorithms** that leave workers uncertain about pay until after completing jobs, creating financial insecurity.
+
+- The World Economic Forum (2025) reports that **female gig workers face heightened safety risks**, including gender-based violence, with "app emergency buttons often fail, calling for preventative measures."
+
+- Research from 2024 shows that "gig workers face significant challenges, such as a lack of social protections, algorithmic control, intense competition, and downward pressure on wages."
+
+### **"How Might We" Statement**
+
+> **How might we create a safer, locally-focused gig platform that connects task requesters with nearby workers while prioritizing safety verification, fair payment protection, and accessibility for all users?**
+
+### **Ethical Lens Applied**
+
+**Principle:** **Safety and harm prevention**
+
+- **Application:** This issue violates the principle of protecting vulnerable workers by exposing them to bad actor employers and unsafe working conditions.
+
+- **Stakeholders Impacted:** Gig workers, Busy professionals seeking reliable help, and local communities looking to build economic connections.
+
+- **Professional Standard:** Aligns with ACM Code of Ethics 1.2: *"Avoid harm"* by prioritizing worker safety through proper vetting, secure payment systems, and community support features that protect against exploitation and dangerous situations.
