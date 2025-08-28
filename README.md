@@ -16,9 +16,8 @@ Current gig economy platforms lack local focus and have significant safety vulne
 ### **Evidence of the Problem**
 
 - According to Human Rights Watch (2025), **major gig platforms use opaque algorithms** that leave workers uncertain about pay until after completing jobs, creating financial insecurity.
-
-- The World Economic Forum (2025) reports that **female gig workers face heightened safety risks**, including gender-based violence, with "app emergency buttons often fail, calling for preventative measures."
-
+**https://www.hrw.org/report/2025/05/12/the-gig-trap/algorithmic-wage-and-labor-exploitation-in-platform-work-in-the-us**
+  
 - Research from 2024 shows that "gig workers face significant challenges, such as a lack of social protections, algorithmic control, intense competition, and downward pressure on wages."
 
 ### **"How Might We" Statement**
