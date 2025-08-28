@@ -27,7 +27,7 @@ Current gig economy platforms lack local focus and have significant safety vulne
 
 ### **Ethical Lens Applied**
 
-**Principle:** **Safety and harm prevention**
+**Principle:** **Safety and harm prevention in Gig Work**
 
 - **Application:** This issue violates the principle of protecting vulnerable workers by exposing them to bad actor employers and unsafe working conditions.
 
