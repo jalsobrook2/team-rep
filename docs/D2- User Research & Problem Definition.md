@@ -1,7 +1,7 @@
-## **CSC425 Deliverable 2: User Research & Problem Definition Submission**
+# Deliverable Two - User Research & Problem Definition Submission
 
 **Student Name:** Ty McMullen  
-**Branch Name:** TM-Branch  
+**Branch Name:** `TM-Branch`  
 **Date Submitted:** August 28, 2025
 
 ### **Target User Group**

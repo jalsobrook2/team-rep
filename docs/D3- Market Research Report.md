@@ -1,7 +1,7 @@
-# Market Research Report: Gig Economy
+# Deliverable Three - Market Research Report
 
 **Student:** Ty McMullen  
-**Branch:** TyM-Branch  
+**Branch:** `TyM-Branch`  
 **Date:** September 14, 2025
 
 ---
