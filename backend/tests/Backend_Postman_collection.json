@@ -1,0 +1,178 @@
+[
+  {
+    "info": {
+      "name": "Team-Rep Backend - Postman Tests",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+      "description": "Postman collection for CRUD tests against /api/messages. Set an environment with {{baseUrl}} (e.g. http://localhost:3000). Uses environment variable 'createdId' to chain requests."
+    },
+    "item": [
+      {
+        "name": "Create Message",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"username\": \"Postman Test\",\n  \"text\": \"This is a test message created by Postman tests\"\n}"
+          },
+          "url": {
+            "raw": "{{baseUrl}}/api/messages",
+            "host": ["{{baseUrl}}"],
+            "path": ["api", "messages"]
+          }
+        },
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Status is 201', function () {",
+                "    pm.response.to.have.status(201);",
+                "});",
+                "",
+                "const body = pm.response.json();",
+                "pm.test('Response has _id', function () {",
+                "    pm.expect(body).to.have.property('_id');",
+                "});",
+                "",
+                "pm.environment.set('createdId', body._id);"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "List Messages",
+        "request": {
+          "method": "GET",
+          "header": [],
+          "url": {
+            "raw": "{{baseUrl}}/api/messages",
+            "host": ["{{baseUrl}}"],
+            "path": ["api", "messages"]
+          }
+        },
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Status is 200', function () {",
+                "    pm.response.to.have.status(200);",
+                "});",
+                "",
+                "const body = pm.response.json();",
+                "pm.test('Response is an array', function () {",
+                "    pm.expect(body).to.be.an('array');",
+                "});"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "Get Message by ID",
+        "request": {
+          "method": "GET",
+          "header": [],
+          "url": {
+            "raw": "{{baseUrl}}/api/messages/{{createdId}}",
+            "host": ["{{baseUrl}}"],
+            "path": ["api", "messages", "{{createdId}}"]
+          }
+        },
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Status is 200', function () {",
+                "    pm.response.to.have.status(200);",
+                "});",
+                "",
+                "const body = pm.response.json();",
+                "pm.test('Returned message has same id', function () {",
+                "    pm.expect(body._id).to.eql(pm.environment.get('createdId'));",
+                "});"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "Update Message (mark read)",
+        "request": {
+          "method": "PUT",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"isRead\": true\n}"
+          },
+          "url": {
+            "raw": "{{baseUrl}}/api/messages/{{createdId}}",
+            "host": ["{{baseUrl}}"],
+            "path": ["api", "messages", "{{createdId}}"]
+          }
+        },
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Status is 200', function () {",
+                "    pm.response.to.have.status(200);",
+                "});",
+                "",
+                "const body = pm.response.json();",
+                "pm.test('isRead is true after update', function () {",
+                "    pm.expect(body.isRead).to.eql(true);",
+                "});"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "Delete Message",
+        "request": {
+          "method": "DELETE",
+          "header": [],
+          "url": {
+            "raw": "{{baseUrl}}/api/messages/{{createdId}}",
+            "host": ["{{baseUrl}}"],
+            "path": ["api", "messages", "{{createdId}}"]
+          }
+        },
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Status is 200', function () {",
+                "    pm.response.to.have.status(200);",
+                "});",
+                "",
+                "const body = pm.response.json();",
+                "pm.test('Delete response has message', function () {",
+                "    pm.expect(body).to.have.property('message');",
+                "});",
+                "",
+                "pm.environment.unset('createdId');"
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

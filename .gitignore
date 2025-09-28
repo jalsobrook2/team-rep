@@ -1,0 +1,9 @@
+backend/node_modules/
+*.env
+*.log
+.DS_Store
+.vscode/
+coverage/
+dist/
+*.tmp
+*.temp
