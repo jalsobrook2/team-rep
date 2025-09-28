@@ -4,9 +4,12 @@
     
     * Docs: Required deliverables.
         * Deliverable 2: User Research & Problem Definition
-        * Deliverable 3: Market Research 
-    * Pages:
-    * Scripts: 
-    * Styles: 
+        * Deliverable 3: Market Research
+        * Deliverable 4: User Workflows and App Wireframe 
+    * Frontend:
+        * Pages:
+        * Scripts: 
+        * Styles: 
+    * Backend:
 
 
