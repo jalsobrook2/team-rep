@@ -1,10 +1,10 @@
 # Backend Example - Express.js & Mongoose
 
-A RESTful API backend built with Express.js and Mongoose for managing messages with full CRUD operations.
+A RESTful API backend built with Express.js and Mongoose for managing jobs/workers with full CRUD operations.
 
 ## Features
 
-- ✅ Complete CRUD operations for messages
+- ✅ Complete CRUD operations for jobs/workers
 - ✅ Standardized JSON response format
 - ✅ MongoDB integration with Mongoose
 - ✅ Error handling middleware
@@ -25,12 +25,11 @@ Backend Example/
 ├── routes/
 │   └── jobRoutes.js       # API route definition for jobs
 |   --- workerRoutes.js    # def. for workers
-├── tests/
-│   ├── Backend_Example_API.postman_collection.json #NOT USED
-│   └── THUNDERCLIENTREADME.md              # Testing instructions for ThunderClient
+├── tests/ 
+│   └── THUNDERCLIENTREADME.md # Testing instructions for ThunderClient
 ├── .env                       # Environment variables
-├── package.json              # Dependencies and scripts
-└── server.js                 # Main server file
+├── package.json               # Dependencies and scripts
+└── server.js                  # Main server file
 ```
 
 ## Quick Start
@@ -74,74 +73,115 @@ All responses follow the standardized format:
 }
 ```
 
-### Message Endpoints
+### Job/Worker Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/jobs` | Create a new message |
-| GET | `/api/jobs` | Get all messages |
-| GET | `/api/jobs/:id` | Get a specific message by ID |
-| PUT | `/api/jobs/:id` | Update a message by ID |
-| DELETE | `/api/jobs/:id` | Delete a message by ID |
+| POST | `/api/jobs` | Create a new job |
+| GET | `/api/jobs` | Get all jobs |
+| GET | `/api/jobs/:id` | Get a specific job by ID |
+| PUT | `/api/jobs/:id` | Update a job by ID |
+| DELETE | `/api/jobs/:id` | Delete a job by ID |
 
-### Message Schema
+| POST | `/api/workers` | Create a new worker |
+| GET | `/api/workers` | Get all workers |
+| GET | `/api/workers/:id` | Get a specific worker by ID |
+| PUT | `/api/workers/:id` | Update a worker by ID |
+| DELETE | `/api/workers/:id` | Delete a worker by ID |
+
+### Job Schema
 
 ```json
 {
-  "author": "string (required, max 100 chars)",
-  "text": "string (required, max 1000 chars)",
-  "timestamp": "Date (auto-generated)",
-  "isRead": "boolean (default: false)"
+  "owner": "string (required max 50 chars)",
+  "title": "string (required max 100 chars)",
+  "description": "string (required max 1000 chars)",
+  "timestamp": "date format required",
+  "timedue": "date format required",
+  "location": "string (required max 1000 chars)",
+  "offer": "number (required, two decimal places)"
+}
+```
+
+### Worker Schema
+
+```json
+{
+  "name": "string (required, max 50 chars)",
+  "skills": "string (required, max 1000 chars)",
+  "timeJoined": "Date (auto-generated)"
 }
 ```
 
 ## Testing
 
-### Option 1: Postman
-1. Import the collection: `tests/Backend_Example_API.postman_collection.json`
-2. Test each endpoint with the provided sample data
-
-### Option 2: Thunder Client (VS Code)
+### Thunder Client (VS Code)
 1. Install Thunder Client extension
-2. Follow the instructions in `tests/README.md`
+2. Follow the instructions in `tests/THUNDERCLIENTREADME.md`
 
 ### Option 3: cURL Examples
 
-**Create a message:**
+**Create a job/worker:**
 ```bash
 curl -X POST http://localhost:3000/api/jobs \
   -H "Content-Type: application/json" \
   -d '{
-    "author": "John Doe",
-    "text": "Hello, this is a test message!",
-    "isRead": false
+    "owner": "John Doe",
+    "title": "Clean window",
+    "description": "Window is dirty from tomato soup, please clean",
+    "timestamp": "12-05-2025",
+    "timedue": "12-12-2025",
+    "location": "400 Super Circle",
+    "offer": "$400"
   }'
-```
 
-**Get all messages:**
-```bash
-curl http://localhost:3000/api/messages
-```
-
-**Get message by ID:**
-```bash
-curl http://localhost:3000/api/messages/msg-001
-```
-
-**Update a message:**
-```bash
-curl -X PUT http://localhost:3000/api/messages/msg-001 \
+curl -X POST http://localhost:3000/api/workers \
   -H "Content-Type: application/json" \
   -d '{
-    "author": "Jane Doe",
-    "text": "Updated message text",
-    "isRead": true
+    "name": "John Doe",
+    "skils": "Window cleaning skills",
+    "timeJoined": "12-09-2024"
   }'
 ```
 
-**Delete a message:**
+**Get all jobs/workers:**
 ```bash
-curl -X DELETE http://localhost:3000/api/messages/msg-001
+curl http://localhost:3000/api/jobs
+curl http://localhost:3000/api/workers
+```
+
+**Get job/worker by ID:**
+```bash
+curl http://localhost:3000/api/jobs/job-1
+curl http://localhost:3000/api/workers/workers-1
+```
+
+**Update a job/worker:**
+```bash
+curl -X PUT http://localhost:3000/api/jobs/jobs-1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "owner": "John Doe",
+    "title": "Clean window",
+    "description": "Window is dirty from failure to complete last job, please clean better",
+    "timestamp": "12-05-2025",
+    "timedue": "12-12-2025",
+    "location": "400 Super Circle",
+    "offer": "$400"
+  }'
+curl -X PUT http://localhost:3000/api/workers/workers-1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Peter Gainskills",
+    "skils": "Window cleaning, mowing",
+    "timeJoined": "12-09-2024"
+  }'
+```
+
+**Delete a job/worker:**
+```bash
+curl -X DELETE http://localhost:3000/api/jobs/jobs-1
+curl -X DELETE http://localhost:3000/api/workers/workers-1
 ```
 
 ## Current Status
@@ -162,7 +202,7 @@ curl -X DELETE http://localhost:3000/api/messages/msg-001
 
 The current implementation uses placeholder responses. To connect to the database:
 
-1. Uncomment the database logic in `controllers/messageController.js`
+1. Uncomment the database logic in `controllers/jobController.js`, `controllers/workerController.js`
 2. Replace placeholder responses with actual Mongoose operations
 3. Test with real data
 
@@ -170,7 +210,7 @@ The current implementation uses placeholder responses. To connect to the databas
 
 ```bash
 PORT=3000
-MONGODB_URI=mongodb://localhost:27017/backend-example
+MONGODB_URI=mongodb+srv://jalsobrook2_admin:<dbpassword>@gigcluster.rbkapkk.mongodb.net/?retryWrites=true&w=majority&appName=GigCluster
 ```
 
 For production, replace `MONGODB_URI` with your actual MongoDB connection string.
