@@ -1,72 +1,99 @@
-# Thunder Client Collection for VS Code
+# API Test Collection (Postman)
 
-This folder contains Thunder Client test requests for the Backend Example API.
+This README describes the test requests for the Team-Rep backend. The API currently exposes a User model (workers and agents) on the /api/messages route.
 
-## Available Requests:
+## Base URL
+Set an environment variable `baseUrl` in Postman or Thunder Client (example):
+http://localhost:3000
 
-### 1. Create Message (POST)
-- **URL**: `http://localhost:3000/api/messages`
-- **Method**: POST
-- **Body**: 
+## Model: User
+Fields:
+- role: "worker" or "agent" (required)
+- username: string (required)
+- legalName: string (required)
+- email: string (required)
+- description: string (optional)
+- appliedJobs: array of Job IDs (worker only)
+- openJobs: array of Job IDs (agent only)
+- timestamps: createdAt, updatedAt
+
+## Endpoints / Requests in collection
+
+1. Create Worker (POST)
+- URL: {{baseUrl}}/api/messages
+- Body (application/json):
 ```json
 {
-  "author": "John Doe",
-  "text": "This is a test message created via API",
-  "isRead": false
+  "role": "worker",
+  "username": "worker1",
+  "legalName": "Worker One",
+  "email": "worker1@example.com",
+  "description": "Experienced worker",
+  "appliedJobs": ["608d..."]
+}
+```
+- Expected: 201 Created → created user object with _id
+
+2. Create Agent (POST)
+- URL: {{baseUrl}}/api/messages
+- Body (application/json):
+```json
+{
+  "role": "agent",
+  "username": "agent1",
+  "legalName": "Agent One",
+  "email": "agent1@example.com",
+  "description": "Recruiting agent",
+  "openJobs": ["608d..."]
 }
 ```
 
-### 2. Get All Messages (GET)
-- **URL**: `http://localhost:3000/api/messages`
-- **Method**: GET
+3. List Users (GET)
+- URL: {{baseUrl}}/api/messages
+- Query params: page (default 1), limit (default 50)
+- Expected: 200 OK → array of users
 
-### 3. Get Message by ID (GET)
-- **URL**: `http://localhost:3000/api/messages/msg-001`
-- **Method**: GET
+4. Get User by ID (GET)
+- URL: {{baseUrl}}/api/messages/{{createdId}}
+- Expected: 200 OK → single user object (appliedJobs / openJobs populated)
 
-### 4. Update Message (PUT)
-- **URL**: `http://localhost:3000/api/messages/msg-001`
-- **Method**: PUT
-- **Body**:
+5. Update User (PUT)
+- URL: {{baseUrl}}/api/messages/{{createdId}}
+- Body example (partial):
 ```json
 {
-  "author": "Jane Doe",
-  "text": "This message has been updated!",
-  "isRead": true
+  "description": "Updated description",
+  "appliedJobs": ["608d..."] 
 }
 ```
 
-### 5. Delete Message (DELETE)
-- **URL**: `http://localhost:3000/api/messages/msg-001`
-- **Method**: DELETE
+6. Delete User (DELETE)
+- URL: {{baseUrl}}/api/messages/{{createdId}}
 
-### 6. Health Check (GET)
-- **URL**: `http://localhost:3000/`
-- **Method**: GET
+7. Health Check (GET)
+- URL: {{baseUrl}}/api/health
+- Expected: 200 OK → { "status": "ok" }
 
-## Expected Response Format:
+## Test collection
+- File: tests/Backend_Postman_collection.json
+- Import into Postman / Thunder Client.
+- Set environment variable `baseUrl`.
+- The collection sets an environment variable `createdId` after Create; run requests in order:
+  Create → List → Get → Update → Delete.
 
-### Success Response:
-```json
-{
-  "success": true,
-  "data": {
-    // Response data here
-  }
-}
+## Sample curl (create worker)
+```bash
+curl -X POST "{{baseUrl}}/api/messages" \
+  -H "Content-Type: application/json" \
+  -d '{"role":"worker","username":"alice","legalName":"Alice Example","email":"alice@example.com","description":"Worker"}'
 ```
 
-### Error Response:
-```json
-{
-  "success": false,
-  "error": "Descriptive error message"
-}
-```
+## Run server locally
+1. cd backend
+2. npm install
+3. Copy `.env.example` → `.env` and set `MONGODB_URI`
+4. npm start (or node server.js)
 
-## How to Use:
-
-1. Install Thunder Client extension in VS Code
-2. Start the server: `npm run dev`
-3. Import the collection or create requests manually using the URLs above
-4. Test each endpoint and verify the response format
+Notes:
+- The route path remains /api/messages for compatibility with existing tests/controllers.
+- Ensure MongoDB is accessible and any referenced Job IDs exist if you use population in tests.
