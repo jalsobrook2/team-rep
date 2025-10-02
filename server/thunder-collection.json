@@ -1,0 +1,59 @@
+{
+  "_type": "collection",
+  "name": "Team-Rep API",
+  "requests": [
+    {
+      "name": "Create Message",
+      "request": {
+        "url": "{{baseUrl}}/api/messages",
+        "method": "POST",
+        "body": {
+          "type": "json",
+          "raw": "{\n  \"author\": \"Alice\",\n  \"text\": \"Hello team!\"\n}"
+        },
+        "headers": [
+          { "name": "Content-Type", "value": "application/json" }
+        ]
+      }
+    },
+    {
+      "name": "List Messages",
+      "request": {
+        "url": "{{baseUrl}}/api/messages",
+        "method": "GET"
+      }
+    },
+    {
+      "name": "Get Message",
+      "request": {
+        "url": "{{baseUrl}}/api/messages/{{messageId}}",
+        "method": "GET"
+      }
+    },
+    {
+      "name": "Update Message",
+      "request": {
+        "url": "{{baseUrl}}/api/messages/{{messageId}}",
+        "method": "PUT",
+        "body": {
+          "type": "json",
+          "raw": "{\n  \"text\": \"Updated message text\"\n}"
+        },
+        "headers": [
+          { "name": "Content-Type", "value": "application/json" }
+        ]
+      }
+    },
+    {
+      "name": "Delete Message",
+      "request": {
+        "url": "{{baseUrl}}/api/messages/{{messageId}}",
+        "method": "DELETE"
+      }
+    }
+  ],
+  "variables": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "messageId", "value": "" }
+  ]
+}
