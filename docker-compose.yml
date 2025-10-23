@@ -1,0 +1,111 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: safegig-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: safegig_dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/pgdata
+      - ./Backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - safegig-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d safegig_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: safegig-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: safegig_dev
+      DB_USERNAME: postgres
+      DB_PASSWORD: password
+      JWT_SECRET: your_super_secret_jwt_key_for_development_only
+      JWT_REFRESH_SECRET: your_super_secret_refresh_key_for_development_only
+      JWT_EXPIRES_IN: 15m
+      JWT_REFRESH_EXPIRES_IN: 7d
+      CORS_ORIGIN: http://localhost:3001
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./Backend:/app
+      - /app/node_modules
+    networks:
+      - safegig-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "healthcheck.js"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend React App
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    container_name: safegig-frontend
+    restart: unless-stopped
+    environment:
+      REACT_APP_API_URL: http://localhost:3000/api
+      REACT_APP_ENVIRONMENT: development
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./Frontend:/app
+      - /app/node_modules
+    networks:
+      - safegig-network
+    depends_on:
+      - backend
+    stdin_open: true
+    tty: true
+
+  # pgAdmin for database management (development only)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: safegig-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@safegig.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_LISTEN_PORT: 80
+    ports:
+      - "8080:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - safegig-network
+    profiles:
+      - development
+
+volumes:
+  postgres_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+networks:
+  safegig-network:
+    driver: bridge

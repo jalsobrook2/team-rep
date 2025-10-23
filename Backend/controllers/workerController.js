@@ -1,5 +1,3 @@
-const Worker = require('../models/Worker');
-
 // Helper function to send standardized responses
 const sendResponse = (res, statusCode, success, data = null, error = null) => {
   const response = { success };
@@ -21,12 +19,14 @@ const createWorker = async (req, res) => {
     // For now, return placeholder response
     // TODO: Implement database logic
 
+    const joinedAt = new Date(Date.now() - 86400000).toISOString();
+
     const sampleWorker = {
-        id: "placeholder-id-123",
-        name: req.body.name || "Sample Name",
-        skills: req.body.skills || "Sample Skills",
-        timeJoined: new Date(Date.now - 86400000).toISOString
-    }
+      id: "placeholder-id-123",
+      name: req.body.name || "Sample Name",
+      skills: req.body.skills || "Sample Skills",
+      timeJoined: joinedAt
+    };
 
     sendResponse(res, 201, true, {
       worker: "Worker created successfully",
@@ -43,24 +43,26 @@ const getAllWorkers = async (req, res) => {
     // For now, return placeholder response
     // TODO: Implement database logic
     
+    const now = Date.now();
+
     const sampleWorkers = [
       {
         id: "worker-1",
         name: "Bob Builder",
         skills: "Accomplished with every building tool ever.",
-        timeJoined: new Date(Date.now - 4320000000).toISOString
+        timeJoined: new Date(now - 4320000000).toISOString()
       },
       {
         id: "worker-2",
         name: "Paula Vasebuilder",
         skills: "Vase-building",
-        timeJoined: new Date(Date.now - 8640000000).toISOString
+        timeJoined: new Date(now - 8640000000).toISOString()
       },
       {
         id: "worker-3",
         name: "Mr. Unemployed",
         skills: "N/A",
-        timeJoined: new Date(Date.now - 864000000).toISOString
+        timeJoined: new Date(now - 864000000).toISOString()
       }
     ];
 
@@ -86,10 +88,10 @@ const getWorkerById = async (req, res) => {
     }
 
     const sampleWorker = {
-        id: id,
-        name: "Sample Name",
-        skills: "Sample Skills",
-        timeJoined: new Date().toISOString
+      id: id,
+      name: "Sample Name",
+      skills: "Sample Skills",
+      timeJoined: new Date().toISOString()
     };
 
     sendResponse(res, 200, true, {
@@ -117,7 +119,7 @@ const updateWorker = async (req, res) => {
       id: id,
       name: updateData.name || "Updated Name",
       skills: updateData.skills || "Updated Skills",
-      timeJoined: new Date().toISOString
+      timeJoined: new Date().toISOString()
     };
 
     sendResponse(res, 200, true, {
