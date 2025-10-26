@@ -1,0 +1,49 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      DOCKER: "true"
+      MONGODB_URI: mongodb://mongo:27017/backend-example
+    depends_on:
+      mongo:
+        condition: service_started
+    networks:
+      - app-network
+    volumes:
+      - ./:/usr/src/app
+      - app_node_modules:/usr/src/app/node_modules
+
+  test:
+    build: .
+    environment:
+      NODE_ENV: test
+      MONGODB_URI_TEST: mongodb://mongo:27017/backend-example-test
+    depends_on:
+      mongo:
+        condition: service_started
+    networks:
+      - app-network
+    volumes:
+      - ./coverage:/usr/src/app/coverage
+    command: npm test
+    profiles:
+      - test
+
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+  app_node_modules:
