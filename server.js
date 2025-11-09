@@ -4,6 +4,22 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
+// Add error handling for uncaught exceptions and rejections
+process.on('uncaughtException', (err) => {
+  console.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
+  console.error('Error name:', err.name);
+  console.error('Error message:', err.message);
+  console.error('Stack trace:', err.stack);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('UNHANDLED REJECTION! 💥 Shutting down...');
+  console.error('Promise:', promise);
+  console.error('Reason:', reason && reason.stack ? reason.stack : reason);
+  process.exit(1);
+});
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -181,11 +197,25 @@ app.use((error, req, res, next) => {
   });
 });
 
-// Only start server if not in test environment
+// Only start server if not in test environment (but allow e2e)
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+  const server = app.listen(PORT, '0.0.0.0', (err) => {
+    if (err) {
+      console.error('❌ Failed to start server:', err);
+      process.exit(1);
+    }
+    console.log(`✅ Server is running on port ${PORT}`);
     console.log(`Visit http://localhost:${PORT} to see available endpoints`);
+    console.log(`Environment: ${process.env.NODE_ENV}`);
+    console.log(`MongoDB URI: ${process.env.MONGODB_URI || 'Not set'}`);
+  });
+
+  server.on('error', (err) => {
+    console.error('❌ Server error:', err);
+    if (err.code === 'EADDRINUSE') {
+      console.error(`Port ${PORT} is already in use`);
+    }
+    process.exit(1);
   });
 }
 
