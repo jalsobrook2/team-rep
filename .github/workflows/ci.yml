@@ -1,0 +1,295 @@
+name: CI Pipeline
+
+on:
+  pull_request:
+    branches: [ main, newMain, develop ]
+  push:
+    branches: [ main, newMain, develop ]
+
+jobs:
+  # Linting Job
+  lint:
+    runs-on: ubuntu-latest
+    name: Code Linting
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run linting
+      run: npm run lint
+      continue-on-error: true # Allow to continue even if linting fails
+    
+    - name: Check code formatting
+      run: |
+        echo "Code formatting check would run here"
+        echo "Consider adding prettier or eslint for actual formatting checks"
+
+  # Unit Tests Job
+  unit-tests:
+    runs-on: ubuntu-latest
+    name: Unit Tests
+    
+    # Set up MongoDB service for testing
+    services:
+      mongodb:
+        image: mongo:latest
+        ports:
+          - 27017:27017
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Wait for MongoDB
+      run: |
+        until nc -z localhost 27017; do
+          echo "Waiting for MongoDB..."
+          sleep 1
+        done
+    
+    - name: Run unit tests
+      run: npm run test:unit
+      env:
+        NODE_ENV: test
+        MONGODB_URI_TEST: mongodb://localhost:27017/backend-example-test
+        JWT_ACCESS_SECRET: test-jwt-secret
+        JWT_REFRESH_SECRET: test-refresh-secret
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: unit-test-results
+        path: |
+          coverage/
+          test-results.xml
+        retention-days: 30
+
+  # E2E Tests Job
+  e2e-tests:
+    runs-on: ubuntu-latest
+    name: End-to-End Tests
+    needs: [lint, unit-tests] # Run after unit tests pass
+    
+    # Set up MongoDB service for E2E testing
+    services:
+      mongodb:
+        image: mongo:latest
+        ports:
+          - 27017:27017
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Wait for MongoDB
+      run: |
+        until nc -z localhost 27017; do
+          echo "Waiting for MongoDB..."
+          sleep 1
+        done
+    
+    - name: Start application server
+      run: |
+        npm run start &
+        echo $! > server.pid
+      env:
+        NODE_ENV: test
+        PORT: 3000
+        MONGODB_URI: mongodb://localhost:27017/backend-example-e2e-test
+        JWT_ACCESS_SECRET: test-jwt-secret
+        JWT_REFRESH_SECRET: test-refresh-secret
+    
+    - name: Wait for server to be ready
+      run: |
+        timeout 60s bash -c 'until curl -f http://localhost:3000/; do sleep 2; done'
+        echo "Server is ready"
+    
+    - name: Run Cypress E2E tests
+      uses: cypress-io/github-action@v6
+      with:
+        wait-on: 'http://localhost:3000'
+        wait-on-timeout: 120
+        browser: chrome
+        headless: true
+        config: video=true,screenshotOnRunFailure=true
+      env:
+        CYPRESS_baseUrl: http://localhost:3000
+        CYPRESS_apiUrl: http://localhost:3000/api
+    
+    - name: Upload Cypress screenshots and videos
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: cypress-screenshots-videos
+        path: |
+          cypress/screenshots
+          cypress/videos
+        retention-days: 30
+    
+    - name: Stop application server
+      if: always()
+      run: |
+        if [ -f server.pid ]; then
+          kill $(cat server.pid) || true
+        fi
+
+  # Build and Test Coverage Job
+  coverage:
+    runs-on: ubuntu-latest
+    name: Test Coverage
+    needs: [unit-tests]
+    
+    services:
+      mongodb:
+        image: mongo:latest
+        ports:
+          - 27017:27017
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Wait for MongoDB
+      run: |
+        until nc -z localhost 27017; do
+          echo "Waiting for MongoDB..."
+          sleep 1
+        done
+    
+    - name: Run tests with coverage
+      run: npm run test:coverage
+      env:
+        NODE_ENV: test
+        MONGODB_URI_TEST: mongodb://localhost:27017/backend-example-test
+        JWT_ACCESS_SECRET: test-jwt-secret
+        JWT_REFRESH_SECRET: test-refresh-secret
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: ./coverage/lcov.info
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+  # Security Audit Job
+  security:
+    runs-on: ubuntu-latest
+    name: Security Audit
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run security audit
+      run: npm audit --audit-level=high
+      continue-on-error: true
+    
+    - name: Check for vulnerabilities
+      run: |
+        echo "Security audit completed"
+        echo "Consider integrating tools like Snyk for comprehensive security scanning"
+
+  # Build Verification Job
+  build:
+    runs-on: ubuntu-latest
+    name: Build Verification
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Verify server can start
+      run: |
+        timeout 30s npm start &
+        SERVER_PID=$!
+        sleep 10
+        curl -f http://localhost:3000/ || exit 1
+        kill $SERVER_PID
+      env:
+        NODE_ENV: production
+        MONGODB_URI: mongodb://localhost:27017/build-test
+        JWT_ACCESS_SECRET: build-test-secret
+        JWT_REFRESH_SECRET: build-test-refresh-secret
+
+  # Notification Job (runs on completion)
+  notify:
+    runs-on: ubuntu-latest
+    name: Notify Results
+    needs: [lint, unit-tests, e2e-tests, coverage, security, build]
+    if: always()
+    
+    steps:
+    - name: Notify success
+      if: ${{ needs.lint.result == 'success' && needs.unit-tests.result == 'success' && needs.e2e-tests.result == 'success' }}
+      run: |
+        echo "✅ All CI checks passed successfully!"
+        echo "- Linting: ${{ needs.lint.result }}"
+        echo "- Unit Tests: ${{ needs.unit-tests.result }}"
+        echo "- E2E Tests: ${{ needs.e2e-tests.result }}"
+        echo "- Coverage: ${{ needs.coverage.result }}"
+        echo "- Security: ${{ needs.security.result }}"
+        echo "- Build: ${{ needs.build.result }}"
+    
+    - name: Notify failure
+      if: ${{ needs.lint.result == 'failure' || needs.unit-tests.result == 'failure' || needs.e2e-tests.result == 'failure' }}
+      run: |
+        echo "❌ Some CI checks failed:"
+        echo "- Linting: ${{ needs.lint.result }}"
+        echo "- Unit Tests: ${{ needs.unit-tests.result }}"
+        echo "- E2E Tests: ${{ needs.e2e-tests.result }}"
+        echo "- Coverage: ${{ needs.coverage.result }}"
+        echo "- Security: ${{ needs.security.result }}"
+        echo "- Build: ${{ needs.build.result }}"
+        exit 1

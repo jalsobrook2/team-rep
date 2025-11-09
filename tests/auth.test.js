@@ -6,45 +6,6 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
 describe('Authentication Tests', () => {
-  let server;
-
-  beforeAll(async () => {
-    // Connect to test database. Prefer a local host when running tests outside Docker.
-    // If MONGODB_URI_TEST is provided and contains a Docker hostname like 'mongo',
-    // replace it with localhost when DOCKER flag is not set so tests run on local machines.
-    const envTestUri = process.env.MONGODB_URI_TEST;
-    const runningInDocker = process.env.DOCKER === 'true' || process.env.CONTAINER === 'true' || process.env.MONGO_HOST === 'mongo';
-    let testDbUri;
-    if (envTestUri) {
-      if (!runningInDocker && envTestUri.includes('://') && envTestUri.includes('mongo')) {
-        // replace host 'mongo' with localhost for local test runs
-        testDbUri = envTestUri.replace(/mongodb:\/\/(?:[^:/]+)(:?)/, 'mongodb://127.0.0.1$1');
-      } else {
-        testDbUri = envTestUri;
-      }
-    } else {
-      testDbUri = 'mongodb://127.0.0.1:27017/backend-example-test';
-    }
-
-    if (mongoose.connection.readyState !== 0) {
-      await mongoose.disconnect();
-    }
-    await mongoose.connect(testDbUri, { useNewUrlParser: true, useUnifiedTopology: true });
-  });
-
-  afterAll(async () => {
-    // Clean up and close connections
-    await Worker.deleteMany({});
-    await mongoose.connection.close();
-    if (server) {
-      server.close();
-    }
-  });
-
-  beforeEach(async () => {
-    // Clear workers collection before each test
-    await Worker.deleteMany({});
-  });
 
   describe('POST /api/auth/signup - Worker Signup', () => {
     it('should create a new worker account successfully', async () => {

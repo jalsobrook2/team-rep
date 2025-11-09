@@ -51,7 +51,21 @@ if (process.env.NODE_ENV !== 'test') {
         require('./models/Job').collection.createIndex({ owner: 1 }),
         require('./models/Job').collection.createIndex({ assignedTo: 1 }),
         require('./models/Job').collection.createIndex({ status: 1 }),
-        require('./models/Job').collection.createIndex({ createdAt: -1 })
+        require('./models/Job').collection.createIndex({ createdAt: -1 }),
+        // Gig indexes
+        require('./models/Gig').collection.createIndex({ user_id: 1 }),
+        require('./models/Gig').collection.createIndex({ category: 1 }),
+        require('./models/Gig').collection.createIndex({ status: 1 }),
+        require('./models/Gig').collection.createIndex({ price: 1 }),
+        require('./models/Gig').collection.createIndex({ createdAt: -1 }),
+        require('./models/Gig').collection.createIndex({ rating: -1 }),
+        // Order indexes
+        require('./models/Order').collection.createIndex({ gig_id: 1 }),
+        require('./models/Order').collection.createIndex({ buyer_id: 1 }),
+        require('./models/Order').collection.createIndex({ seller_id: 1 }),
+        require('./models/Order').collection.createIndex({ status: 1 }),
+        require('./models/Order').collection.createIndex({ createdAt: -1 }),
+        require('./models/Order').collection.createIndex({ expectedDeliveryDate: 1 })
       ]).then(() => {
         console.log('Database indexes created successfully');
       }).catch(err => {
@@ -82,9 +96,22 @@ const jobRoutes = require('./routes/jobRoutes');
 const workerRoutes = require('./routes/workerRoutes');
 const authRoutes = require('./routes/authRoutes');
 const messageRoutes = require('./routes/messageRoutes');
+const gigRoutes = require('./routes/gigRoutes');
+const orderRoutes = require('./routes/orderRoutes');
 
 // Mount auth routes first (before protected routes)
 app.use('/api/auth', authRoutes);
+
+// Add debug route
+app.get('/api/test-public', (req, res) => {
+  res.json({ success: true, message: 'Public route works!' });
+});
+
+// Mount specific routes BEFORE general /api routes
+app.use('/api/gigs', gigRoutes);
+app.use('/api/orders', orderRoutes);
+
+// Mount general routes that have global middleware AFTER specific routes
 app.use('/api', jobRoutes);
 app.use('/api', workerRoutes);
 app.use('/api', messageRoutes);
@@ -94,22 +121,45 @@ app.get('/', (req, res) => {
   res.json({
     success: true,
     data: {
-      job: 'Backend Example API is running!',
-      jobEndpoints: [
-        'POST /api/jobs - Create a new job',
-        'GET /api/jobs - Get all jobs',
-        'GET /api/jobs/:id - Get a specific job by ID',
-        'PUT /api/jobs/:id - Update a job by ID',
-        'DELETE /api/jobs/:id - Delete a job by ID'
-      ],
-      worker: 'Example API for workers',
-      workerEndpoints: [
-        'POST /api/workers - Create a new worker',
-        'GET /api/workers - Get all workers',
-        'GET /api/workers/:id - Get a specific worker by ID',
-        'PUT /api/workers/:id - Update a worker by ID',
-        'DELETE /api/workers/:id - Delete a worker by ID'
-      ]
+      message: 'Freelance Platform API is running!',
+      endpoints: {
+        authentication: [
+          'POST /api/auth/register - Register a new user',
+          'POST /api/auth/login - User login',
+          'POST /api/auth/logout - User logout'
+        ],
+        jobs: [
+          'POST /api/jobs - Create a new job',
+          'GET /api/jobs - Get all jobs',
+          'GET /api/jobs/:id - Get a specific job by ID',
+          'PUT /api/jobs/:id - Update a job by ID',
+          'DELETE /api/jobs/:id - Delete a job by ID'
+        ],
+        gigs: [
+          'GET /api/gigs - Browse all gigs',
+          'GET /api/gigs/categories - Get gig categories',
+          'POST /api/gigs - Create a new gig (auth required)',
+          'GET /api/gigs/user/me - Get my gigs (auth required)',
+          'PUT /api/gigs/:id - Update a gig (auth required)',
+          'DELETE /api/gigs/:id - Delete a gig (auth required)'
+        ],
+        orders: [
+          'POST /api/orders - Create a new order (auth required)',
+          'GET /api/orders - Get my orders (auth required)',
+          'GET /api/orders/:id - Get order details (auth required)',
+          'PUT /api/orders/:id/accept - Accept an order (seller)',
+          'PUT /api/orders/:id/start - Start work (seller)',
+          'PUT /api/orders/:id/deliver - Deliver order (seller)',
+          'PUT /api/orders/:id/complete - Complete order (buyer)'
+        ],
+        workers: [
+          'POST /api/workers - Create a new worker',
+          'GET /api/workers - Get all workers',
+          'GET /api/workers/:id - Get a specific worker by ID',
+          'PUT /api/workers/:id - Update a worker by ID',
+          'DELETE /api/workers/:id - Delete a worker by ID'
+        ]
+      }
     }
   });
 });
@@ -140,6 +190,4 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 // Export app for testing
-module.exports = app;
-
 module.exports = app;
