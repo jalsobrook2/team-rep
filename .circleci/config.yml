@@ -45,6 +45,8 @@ jobs:
           environment:
             NODE_ENV: test
             MONGODB_URI_TEST: mongodb://localhost:27017/backend-example-test
+            JWT_SECRET: test-secret-key-for-ci
+            JWT_REFRESH_SECRET: test-refresh-secret-key-for-ci
       
       - store_test_results:
           path: coverage
