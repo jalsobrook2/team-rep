@@ -46,13 +46,13 @@ jobs:
       
       - run:
           name: Run Tests with Coverage
-          command: npm run test:coverage -- --maxWorkers=2
+          command: npm run test:coverage -- --runInBand
           no_output_timeout: 5m
           environment:
             NODE_ENV: test
             MONGODB_URI_TEST: mongodb://localhost:27017/backend-example-test
             MONGODB_URI: mongodb://localhost:27017/backend-example-test
-            JWT_SECRET: test-secret-key-for-ci
+            JWT_ACCESS_SECRET: test-access-secret-key-for-ci
             JWT_REFRESH_SECRET: test-refresh-secret-key-for-ci
             CI: true
       

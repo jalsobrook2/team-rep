@@ -1,41 +1,25 @@
 const request = require('supertest');
 const mongoose = require('mongoose');
-const { MongoMemoryServer } = require('mongodb-memory-server');
+const { connect, clear, close } = require('./testDb');
 const app = require('../server');
 const Worker = require('../models/Worker');
 const Job = require('../models/Job');
 
 describe('Jobs CRUD Operations', () => {
   let token, userId, jobId;
-  let mongod;
 
   beforeAll(async () => {
-    // Use MongoDB Memory Server for consistent test environment
-    if (!global.__MONGO_SERVER__) {
-      mongod = await MongoMemoryServer.create();
-      global.__MONGO_SERVER__ = mongod;
-      const testDbUri = mongod.getUri();
-      
-      if (mongoose.connection.readyState !== 0) {
-        await mongoose.disconnect();
-      }
-      await mongoose.connect(testDbUri, { useNewUrlParser: true, useUnifiedTopology: true });
-    }
+    await connect();
   });
 
   afterAll(async () => {
     await Worker.deleteMany({});
     await Job.deleteMany({});
-    await mongoose.connection.close();
-    if (global.__MONGO_SERVER__) {
-      await global.__MONGO_SERVER__.stop();
-      global.__MONGO_SERVER__ = null;
-    }
+    await close();
   });
 
   beforeEach(async () => {
-    await Worker.deleteMany({});
-    await Job.deleteMany({});
+    await clear();
 
     // Create a test user
     const signupRes = await request(app)

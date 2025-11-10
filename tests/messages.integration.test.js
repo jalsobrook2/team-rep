@@ -3,22 +3,18 @@ process.env.NODE_ENV = 'test';
 
 const request = require('supertest');
 const mongoose = require('mongoose');
-const { MongoMemoryServer } = require('mongodb-memory-server');
+const { connect, clear, close } = require('./testDb');
 
 let app;
-let mongoServer;
 
 beforeAll(async () => {
-  mongoServer = await MongoMemoryServer.create();
-  const uri = mongoServer.getUri();
-  await mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+  await connect();
   // require the app after mongoose connection is established (server.js will not auto-connect in test env)
   app = require('../server');
 });
 
 afterAll(async () => {
-  await mongoose.disconnect();
-  if (mongoServer) await mongoServer.stop();
+  await close();
 });
 
 describe('Messaging integration', () => {
