@@ -122,6 +122,21 @@ const messageRoutes = require('./routes/messageRoutes');
 const gigRoutes = require('./routes/gigRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 
+// Health check endpoint for CI/monitoring
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+// Add debug route
+app.get('/api/test-public', (req, res) => {
+  res.json({ success: true, message: 'Public route works!' });
+});
+
 // Mount API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/gigs', gigRoutes);
@@ -133,24 +148,9 @@ app.use('/api', messageRoutes);
 // Serve static files from the Frontend directory
 app.use(express.static(path.join(__dirname, 'Frontend')));
 
-// Add debug route
-app.get('/api/test-public', (req, res) => {
-  res.json({ success: true, message: 'Public route works!' });
-});
-
 // Default route serves the index.html file
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'Frontend', 'pages', 'index.html'));
-});
-
-// Health check endpoint for CI/monitoring
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development'
-  });
 });
 
 // 404 handler
