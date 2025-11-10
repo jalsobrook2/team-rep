@@ -122,26 +122,25 @@ const messageRoutes = require('./routes/messageRoutes');
 const gigRoutes = require('./routes/gigRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 
-// Mount auth routes first (before protected routes)
+// Mount API routes
 app.use('/api/auth', authRoutes);
+app.use('/api/gigs', gigRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api', jobRoutes);
+app.use('/api', workerRoutes);
+app.use('/api', messageRoutes);
+
+// Serve static files from the Frontend directory
+app.use(express.static(path.join(__dirname, 'Frontend')));
 
 // Add debug route
 app.get('/api/test-public', (req, res) => {
   res.json({ success: true, message: 'Public route works!' });
 });
 
-// Mount specific routes BEFORE general /api routes
-app.use('/api/gigs', gigRoutes);
-app.use('/api/orders', orderRoutes);
-
-// Mount general routes that have global middleware AFTER specific routes
-app.use('/api', jobRoutes);
-app.use('/api', workerRoutes);
-app.use('/api', messageRoutes);
-
 // Default route serves the index.html file
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'Frontend', 'index.html'));
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'Frontend', 'pages', 'index.html'));
 });
 
 // Health check endpoint for CI/monitoring
