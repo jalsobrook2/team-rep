@@ -8,32 +8,41 @@ jobs:
         environment:
           MONGO_INITDB_DATABASE: backend-example-test
     
+    resource_class: medium
+    
     steps:
       - checkout
       
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "package.json" }}
-            - v1-dependencies-
+            - v2-dependencies-{{ checksum "package-lock.json" }}
+            - v2-dependencies-
       
       - run:
           name: Install Dependencies
-          command: npm install
+          command: npm ci
       
       - save_cache:
           paths:
             - node_modules
-          key: v1-dependencies-{{ checksum "package.json" }}
+          key: v2-dependencies-{{ checksum "package-lock.json" }}
       
       - run:
           name: Wait for MongoDB
           command: |
-            for i in {1..30}; do
+            echo "Installing MongoDB tools..."
+            sudo apt-get update && sudo apt-get install -y netcat-openbsd
+            echo "Waiting for MongoDB to be ready..."
+            for i in {1..60}; do
               if nc -z localhost 27017; then
-                echo "MongoDB is ready"
-                exit 0
+                echo "MongoDB port is open"
+                sleep 5
+                if mongosh --eval "db.runCommand({ ping: 1 })" > /dev/null 2>&1; then
+                  echo "MongoDB is ready and responding"
+                  exit 0
+                fi
               fi
-              echo "Waiting for MongoDB... ($i/30)"
+              echo "Waiting for MongoDB... ($i/60)"
               sleep 2
             done
             echo "MongoDB failed to start"
@@ -41,12 +50,15 @@ jobs:
       
       - run:
           name: Run Tests with Coverage
-          command: npm run test:coverage
+          command: npm run test:coverage -- --maxWorkers=2
+          no_output_timeout: 5m
           environment:
             NODE_ENV: test
             MONGODB_URI_TEST: mongodb://localhost:27017/backend-example-test
+            MONGODB_URI: mongodb://localhost:27017/backend-example-test
             JWT_SECRET: test-secret-key-for-ci
             JWT_REFRESH_SECRET: test-refresh-secret-key-for-ci
+            CI: true
       
       - store_test_results:
           path: coverage
