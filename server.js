@@ -21,7 +21,8 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const HOST = process.env.HOST || '0.0.0.0';
+const PORT = Number(process.env.PORT) || 3000;
 
 // Middleware
 app.use(cors({
@@ -36,7 +37,7 @@ app.use(express.urlencoded({ extended: true }));
 // Priority: MONGODB_URI env var > Docker/local fallback
 const isDockerEnv = process.env.DOCKER === 'true' || process.env.CONTAINER === 'true' || process.env.MONGO_HOST === 'mongo';
 const defaultMongoHost = isDockerEnv ? 'mongo' : '127.0.0.1';
-const MONGODB_URI = process.env.MONGODB_URI || `mongodb://${defaultMongoHost}:27017/backend-example`;
+const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URL || `mongodb://${defaultMongoHost}:27017/backend-example`;
 
 // MongoDB connection options for better reliability and performance
 // Compatible with both local MongoDB and MongoDB Atlas
@@ -54,46 +55,39 @@ const mongooseOptions = {
 const maskedUri = MONGODB_URI.replace(/\/\/([^:]+):([^@]+)@/, '//$1:****@');
 console.log(`Attempting to connect to MongoDB: ${maskedUri}`);
 
-// Connect to MongoDB only if not in test environment
-if (process.env.NODE_ENV !== 'test') {
-  mongoose.connect(MONGODB_URI, mongooseOptions)
-    .then(() => {
-      console.log(`Connected to MongoDB successfully (${MONGODB_URI})`);
-      
-      // Create indexes for better query performance
-      Promise.all([
-        require('./models/Worker').collection.createIndex({ email: 1 }, { unique: true }),
-        require('./models/Worker').collection.createIndex({ refreshTokens: 1 }),
-        require('./models/Job').collection.createIndex({ owner: 1 }),
-        require('./models/Job').collection.createIndex({ assignedTo: 1 }),
-        require('./models/Job').collection.createIndex({ status: 1 }),
-        require('./models/Job').collection.createIndex({ createdAt: -1 }),
-        // Gig indexes
-        require('./models/Gig').collection.createIndex({ user_id: 1 }),
-        require('./models/Gig').collection.createIndex({ category: 1 }),
-        require('./models/Gig').collection.createIndex({ status: 1 }),
-        require('./models/Gig').collection.createIndex({ price: 1 }),
-        require('./models/Gig').collection.createIndex({ createdAt: -1 }),
-        require('./models/Gig').collection.createIndex({ rating: -1 }),
-        // Order indexes
-        require('./models/Order').collection.createIndex({ gig_id: 1 }),
-        require('./models/Order').collection.createIndex({ buyer_id: 1 }),
-        require('./models/Order').collection.createIndex({ seller_id: 1 }),
-        require('./models/Order').collection.createIndex({ status: 1 }),
-        require('./models/Order').collection.createIndex({ createdAt: -1 }),
-        require('./models/Order').collection.createIndex({ expectedDeliveryDate: 1 })
-      ]).then(() => {
-        console.log('Database indexes created successfully');
-      }).catch(err => {
-        console.warn('Error creating database indexes:', err);
-      });
-    })
-    .catch((error) => {
-      console.error('MongoDB connection error:', error);
-      process.exit(1); // Exit if cannot connect to database
-    });
+async function ensureDatabaseIndexes() {
+  const Worker = require('./models/Worker');
+  const Job = require('./models/Job');
+  const Gig = require('./models/Gig');
+  const Order = require('./models/Order');
 
-  // Handle MongoDB connection errors
+  await Promise.all([
+    Worker.collection.createIndex({ email: 1 }, { unique: true }),
+    Worker.collection.createIndex({ refreshTokens: 1 }),
+    Job.collection.createIndex({ owner: 1 }),
+    Job.collection.createIndex({ assignedTo: 1 }),
+    Job.collection.createIndex({ status: 1 }),
+    Job.collection.createIndex({ createdAt: -1 }),
+    Gig.collection.createIndex({ user_id: 1 }),
+    Gig.collection.createIndex({ category: 1 }),
+    Gig.collection.createIndex({ status: 1 }),
+    Gig.collection.createIndex({ price: 1 }),
+    Gig.collection.createIndex({ createdAt: -1 }),
+    Gig.collection.createIndex({ rating: -1 }),
+    Order.collection.createIndex({ gig_id: 1 }),
+    Order.collection.createIndex({ buyer_id: 1 }),
+    Order.collection.createIndex({ seller_id: 1 }),
+    Order.collection.createIndex({ status: 1 }),
+    Order.collection.createIndex({ createdAt: -1 }),
+    Order.collection.createIndex({ expectedDeliveryDate: 1 })
+  ]);
+}
+
+async function connectToDatabase() {
+  console.log(`Connecting to MongoDB using URI: ${maskedUri}`);
+  const connection = await mongoose.connect(MONGODB_URI, mongooseOptions);
+  console.log('MongoDB connected successfully');
+
   mongoose.connection.on('error', (err) => {
     console.error('MongoDB connection error:', err);
   });
@@ -105,6 +99,15 @@ if (process.env.NODE_ENV !== 'test') {
   mongoose.connection.on('reconnected', () => {
     console.log('MongoDB reconnected successfully');
   });
+
+  try {
+    await ensureDatabaseIndexes();
+    console.log('Database indexes verified');
+  } catch (err) {
+    console.warn('Warning: failed to build one or more indexes', err);
+  }
+
+  return connection;
 }
 
 // Routes
@@ -207,26 +210,32 @@ app.use((error, req, res, next) => {
   });
 });
 
-// Only start server if not in test environment (but allow e2e)
-if (process.env.NODE_ENV !== 'test') {
-  const server = app.listen(PORT, '0.0.0.0', (err) => {
-    if (err) {
-      console.error('❌ Failed to start server:', err);
-      process.exit(1);
-    }
-    console.log(`✅ Server is running on port ${PORT}`);
-    console.log(`Visit http://localhost:${PORT} to see available endpoints`);
-    console.log(`Environment: ${process.env.NODE_ENV}`);
-    console.log(`MongoDB URI: ${process.env.MONGODB_URI || 'Not set'}`);
-  });
+async function startServer() {
+  try {
+    await connectToDatabase();
 
-  server.on('error', (err) => {
-    console.error('❌ Server error:', err);
-    if (err.code === 'EADDRINUSE') {
-      console.error(`Port ${PORT} is already in use`);
-    }
-    process.exit(1);
-  });
+    const server = app.listen(PORT, HOST, () => {
+      console.log(`✅ Server listening at http://${HOST}:${PORT}`);
+      console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    });
+
+    server.on('error', (err) => {
+      console.error('❌ Server error:', err);
+      if (err.code === 'EADDRINUSE') {
+        console.error(`Port ${PORT} is already in use`);
+      }
+      process.exit(1);
+    });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exitCode = 1;
+    setTimeout(() => process.exit(1), 2000);
+  }
+}
+
+// Only start server if not in a pure unit test environment
+if (process.env.NODE_ENV !== 'test' || process.env.CYPRESS_E2E_TEST === 'true') {
+  void startServer();
 }
 
 // Export app for testing
