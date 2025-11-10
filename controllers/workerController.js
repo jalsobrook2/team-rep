@@ -1,4 +1,5 @@
 const Worker = require('../models/Worker');
+const mongoose = require('mongoose');
 const Job = require('../models/Job');
 const MessageRequest = require('../models/MessageRequest');
 const UserMessage = require('../models/UserMessage');
@@ -53,8 +54,8 @@ const createWorker = async (req, res) => {
       return sendResponse(res, 400, false, null, "All fields (name, email, password, skills) are required");
     }
 
-    // Validate email format
-    const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+    // Validate email format — allow modern TLDs (longer than 3 chars)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return sendResponse(res, 400, false, null, "Invalid email format");
     }
@@ -206,8 +207,8 @@ const loginWorker = async (req, res) => {
       return sendResponse(res, 400, false, null, "Email and password are required");
     }
 
-    // Validate email format
-    const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+    // Validate email format — allow modern TLDs
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return sendResponse(res, 400, false, null, "Invalid email format");
     }
@@ -257,36 +258,74 @@ const loginWorker = async (req, res) => {
 
 const getAllWorkers = async (req, res) => {
   try {
-    // For now, return placeholder response
-    // TODO: Implement database logic
-    
+    // Support pagination via query params
+    const page = Math.max(1, parseInt(req.query.page || '1', 10));
+    let limit = Math.max(1, parseInt(req.query.limit || '6', 10));
+    if (limit > 50) limit = 50;
+
+    // Prefer real DB-backed workers when possible
+    try {
+      const totalCount = await Worker.countDocuments({}).catch(() => 0);
+      if (totalCount > 0) {
+        const totalPages = Math.max(1, Math.ceil(totalCount / limit));
+        const skip = (page - 1) * limit;
+        const workersFromDb = await Worker.find({})
+          .select('name skills createdAt email')
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .lean();
+
+        const normalized = workersFromDb.map(w => ({
+          _id: w._id ? w._id.toString() : mongoose.Types.ObjectId().toString(),
+          name: w.name || (w.email || '').split('@')[0],
+          email: w.email || null,
+          skills: w.skills || '',
+          timeJoined: (w.createdAt && new Date(w.createdAt).toISOString()) || new Date().toISOString()
+        }));
+
+        console.log(`Returning ${normalized.length} workers from DB (page ${page}/${totalPages})`);
+        return sendResponse(res, 200, true, { workers: normalized, totalCount, totalPages, page });
+      }
+    } catch (dbErr) {
+      // Log DB query errors and fall back to sample workers
+      console.warn('Failed to query workers collection (pagination), falling back to sample data:', dbErr && dbErr.message ? dbErr.message : dbErr);
+    }
+
+    // If DB wasn't available or returned no workers, return stable sample workers (with basic emails)
     const sampleWorkers = [
       {
-        id: "worker-1",
+        _id: mongoose.Types.ObjectId().toString(),
         name: "Bob Builder",
+        email: 'bob.builder@example.test',
         skills: "Accomplished with every building tool ever.",
-        timeJoined: new Date(Date.now - 4320000000).toISOString
+        timeJoined: new Date(Date.now() - 4320000000).toISOString()
       },
       {
-        id: "worker-2",
+        _id: mongoose.Types.ObjectId().toString(),
         name: "Paula Vasebuilder",
+        email: 'paula.vase@example.test',
         skills: "Vase-building",
-        timeJoined: new Date(Date.now - 8640000000).toISOString
+        timeJoined: new Date(Date.now() - 8640000000).toISOString()
       },
       {
-        id: "worker-3",
+        _id: mongoose.Types.ObjectId().toString(),
         name: "Mr. Unemployed",
+        email: 'no.reply@example.test',
         skills: "N/A",
-        timeJoined: new Date(Date.now - 864000000).toISOString
+        timeJoined: new Date(Date.now() - 864000000).toISOString()
       }
     ];
 
-    sendResponse(res, 200, true, {
-      workers: sampleWorkers,
-      count: sampleWorkers.length
-    });
+    const totalCount = sampleWorkers.length;
+    const totalPages = Math.max(1, Math.ceil(totalCount / limit));
+
+    console.log('Serving sample workers (fallback):', sampleWorkers.map(w => ({ _id: w._id, name: w.name })) );
+
+    return sendResponse(res, 200, true, { workers: sampleWorkers, totalCount, totalPages, page });
   } catch (error) {
-    sendResponse(res, 500, false, null, "Failed to retrieve workers");
+    console.error('getAllWorkers unexpected error:', error && error.message ? error.message : error);
+    return sendResponse(res, 500, false, null, "Failed to retrieve workers");
   }
 };
 
@@ -294,24 +333,21 @@ const getAllWorkers = async (req, res) => {
 const getWorkerById = async (req, res) => {
   try {
     const { id } = req.params;
-    
-    // For now, return placeholder response
-    // TODO: Implement database logic
-    
-    if (!id) {
-      return sendResponse(res, 400, false, null, "Worker ID is required");
-    }
+    if (!id) return sendResponse(res, 400, false, null, 'Worker ID is required');
 
-    const sampleWorker = {
-        id: id,
-        name: "Sample Name",
-        skills: "Sample Skills",
-        timeJoined: new Date().toISOString
+    const worker = await Worker.findById(id).select('-password -refreshTokens').lean();
+    if (!worker) return sendResponse(res, 404, false, null, 'Worker not found');
+
+    // Normalize output
+    const normalized = {
+      _id: worker._id,
+      name: worker.name,
+      email: worker.email,
+      skills: worker.skills,
+      timeJoined: worker.createdAt || worker.timeJoined
     };
 
-    sendResponse(res, 200, true, {
-      worker: sampleWorker
-    });
+    sendResponse(res, 200, true, { worker: normalized });
   } catch (error) {
     sendResponse(res, 500, false, null, "Failed to retrieve worker");
   }
@@ -322,25 +358,35 @@ const updateWorker = async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
-    
-    // For now, return placeholder response
-    // TODO: Implement database logic
-    
-    if (!id) {
-      return sendResponse(res, 400, false, null, "Worker ID is required");
+    if (!id) return sendResponse(res, 400, false, null, 'Worker ID is required');
+
+    // Only the owner may update their profile
+    if (!req.workerId || req.workerId.toString() !== id.toString()) {
+      return sendResponse(res, 403, false, null, 'Not authorized to update this worker');
     }
 
-    const updatedWorker = {
-      id: id,
-      name: updateData.name || "Updated Name",
-      skills: updateData.skills || "Updated Skills",
-      timeJoined: new Date().toISOString
-    };
+    const allowed = ['name', 'skills', 'email', 'password'];
+    const payload = {};
+    allowed.forEach(f => { if (Object.prototype.hasOwnProperty.call(updateData, f)) payload[f] = updateData[f]; });
 
-    sendResponse(res, 200, true, {
-      worker: "Worker updated successfully",
-      workerData: updatedWorker
-    });
+    // If email is provided, normalize
+    if (payload.email) payload.email = payload.email.toLowerCase().trim();
+
+    // Update and rely on pre-save hooks to hash password when necessary
+    const worker = await Worker.findById(id);
+    if (!worker) return sendResponse(res, 404, false, null, 'Worker not found');
+
+    Object.assign(worker, payload);
+    try{ await worker.save(); } catch(saveErr){
+      if (saveErr.name === 'ValidationError'){
+        const validationErrors = Object.values(saveErr.errors).map(err => err.message);
+        return sendResponse(res, 400, false, null, validationErrors.join(', '));
+      }
+      throw saveErr;
+    }
+
+    const out = worker.toObject(); delete out.password; delete out.refreshTokens;
+    sendResponse(res, 200, true, { message: 'Worker updated successfully', worker: out });
   } catch (error) {
     sendResponse(res, 500, false, null, "Failed to update worker");
   }
@@ -350,18 +396,18 @@ const updateWorker = async (req, res) => {
 const deleteWorker = async (req, res) => {
   try {
     const { id } = req.params;
-    
-    // For now, return placeholder response
-    // TODO: Implement database logic
-    
-    if (!id) {
-      return sendResponse(res, 400, false, null, "Worker ID is required");
+    if (!id) return sendResponse(res, 400, false, null, 'Worker ID is required');
+
+    // Only the owner may delete their account
+    if (!req.workerId || req.workerId.toString() !== id.toString()) {
+      return sendResponse(res, 403, false, null, 'Not authorized to delete this worker');
     }
 
-    sendResponse(res, 200, true, {
-      worker: `Worker with ID ${id} deleted successfully`,
-      deletedId: id
-    });
+    const worker = await Worker.findById(id);
+    if (!worker) return sendResponse(res, 404, false, null, 'Worker not found');
+
+    await Worker.findByIdAndDelete(id);
+    sendResponse(res, 200, true, { message: `Worker with ID ${id} deleted successfully`, deletedId: id });
   } catch (error) {
     sendResponse(res, 500, false, null, "Failed to delete worker");
   }
@@ -378,17 +424,19 @@ const getDashboard = async (req, res) => {
 
     // Jobs posted by this user
     const jobsPosted = await Job.find({ owner: worker._id })
-      .select('title status createdAt offer timeDue assignedTo')
+      .select('title description location status createdAt offer timeDue assignedTo')
+      .populate('assignedTo', 'name email')
       .sort({ createdAt: -1 });
 
     // Jobs posted by others
     const jobsOthersPosted = await Job.find({ owner: { $ne: worker._id } })
-      .select('title status createdAt offer timeDue assignedTo')
+      .select('title description location status createdAt offer timeDue assignedTo')
       .sort({ createdAt: -1 });
 
     // Jobs accepted by this user
     const jobsAccepted = await Job.find({ assignedTo: worker._id })
-      .select('title status createdAt offer timeDue owner')
+      .select('title description location status createdAt offer timeDue owner')
+      .populate('owner', 'name email')
       .sort({ createdAt: -1 });
 
     // Message requests for this user
@@ -419,10 +467,54 @@ const getDashboard = async (req, res) => {
       recentConversations: recentConversations.filter(Boolean)
     };
 
-    sendResponse(res, 200, true, { dashboard: dashboardData });
+    // Include basic worker info in the dashboard response so UIs can display name/email
+    const workerInfo = {
+      id: worker._id,
+      name: worker.name,
+      email: worker.email,
+      skills: worker.skills
+    };
+
+    sendResponse(res, 200, true, { dashboard: dashboardData, worker: workerInfo });
   } catch (error) {
     console.error('Dashboard shell retrieval error:', error);
     sendResponse(res, 500, false, null, "Failed to retrieve dashboard shell data");
+  }
+};
+
+// (module.exports moved to end of file)
+
+// POST /api/auth/demo-login → Issue tokens for a demo account without password
+const demoLogin = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return sendResponse(res, 400, false, null, 'Email is required');
+
+    const demoEmail = email.toLowerCase().trim();
+    const WorkerModel = Worker;
+
+    let worker = await WorkerModel.findOne({ email: demoEmail });
+    if (!worker) {
+      // Create a lightweight demo account if missing. Use a random strong password (not used).
+      const randomPassword = crypto.randomBytes(12).toString('hex');
+      worker = new WorkerModel({ name: (demoEmail.split('@')[0] || 'Demo'), email: demoEmail, password: randomPassword, skills: 'Demo account' });
+      await worker.save();
+    }
+
+    // Ensure a demo-seed refresh token exists and return tokens without checking password
+    const { accessToken, refreshToken } = generateTokens(worker._id);
+    // Remove prior demo-seed tokens and add a fresh one
+    worker.refreshTokens = worker.refreshTokens?.filter(t => t.device !== 'demo-seed') || [];
+    worker.refreshTokens.push({ token: refreshToken, device: 'demo-seed' });
+    await worker.save();
+
+    const workerResponse = worker.toObject();
+    delete workerResponse.password;
+
+    return sendResponse(res, 200, true, { worker: workerResponse, accessToken, refreshToken });
+  } catch (error) {
+    console.error('Demo login error:', error);
+    return sendResponse(res, 500, false, null, 'Demo login failed');
   }
 };
 
@@ -431,6 +523,7 @@ module.exports = {
   loginWorker,
   logoutWorker,
   refreshToken,
+  demoLogin,
   getAllWorkers,
   getWorkerById,
   updateWorker,

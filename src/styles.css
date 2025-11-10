@@ -1,0 +1,128 @@
+:root{--accent:#06a0db;--accent-2:#0082c0;--muted:#3f4950;--success:#2d9a4a;--danger:#d9534f}
+*{box-sizing:border-box}
+body{font-family:'Frutiger', 'Segoe UI', Arial, sans-serif;margin:0;background:linear-gradient(180deg,#f3f7fa,#e8f3f8);color:#0b2336;padding:16px}
+.small{font-size:0.92rem;color:var(--muted)}
+button{background:var(--accent);color:#fff;border:none;padding:8px 12px;border-radius:12px}
+button.ghost{background:transparent;color:#073044;border:1px solid rgba(15,45,60,0.06)}
+input,textarea{border:1px solid #ddd;border-radius:8px;padding:8px}
+.card{padding:12px;border-radius:12px;background:linear-gradient(180deg,#fbfdff,#f7fbfc);border:1px solid rgba(15,45,60,0.04);box-shadow:0 4px 10px rgba(12,30,40,0.04)}
+.left-col{flex:0 0 min(320px,42vw);max-width:min(320px,42vw);padding-right:12px}
+.chat-right{flex:1;min-width:0;display:flex;flex-direction:column}
+#conversationView{flex:1 1 auto;max-height:56vh;overflow-y:auto;padding:12px;padding-bottom:88px}
+.reply-row{position:sticky;bottom:0;background:linear-gradient(180deg,#fff,#f9fbfd);padding:8px 0;border-top:1px solid rgba(15,45,60,0.03)}
+
+@media(max-width:720px){
+	.card button, button { padding:14px 18px; font-size:1rem }
+}
+
+/* Legacy dashboard layout pieces (ported from Frontend/pages/dashboard.html) */
+.app{max-width:980px;margin:0 auto}
+header{display:flex;align-items:center;justify-content:space-between;padding:12px 0}
+h1{font-size:1.25rem;margin:0;color:var(--accent)}
+.auth-row{display:flex;gap:8px;align-items:center}
+.tab-bar{display:flex;gap:10px;margin:14px 0;overflow:auto}
+.tab-btn{flex:1;min-width:110px;text-align:center;padding:10px 12px;border-radius:14px;border:none;background:linear-gradient(180deg,#06a0db,#0082c0);color:#fff;font-weight:800;box-shadow:0 12px 28px rgba(6,128,186,0.14)}
+.tab-btn[aria-pressed="true"], .tab-btn.active{outline:2px solid rgba(255,255,255,0.12);transform:translateY(-1px)}
+.tab-btn:hover{filter:brightness(1.06);transform:translateY(-2px)}
+main{background:linear-gradient(180deg,rgba(255,255,255,0.9),#fff);border-radius:14px;padding:18px;box-shadow:0 8px 24px rgba(19,44,59,0.08);border:1px solid rgba(31,127,179,0.06)}
+.panel{display:none}
+.panel.active{display:block}
+.list{display:grid;gap:10px}
+.card{padding:12px;border-radius:12px;background:linear-gradient(180deg,#fbfdff,#f7fbfc);border:1px solid rgba(15,45,60,0.04);box-shadow:0 4px 10px rgba(12,30,40,0.04)}
+label{display:block;margin-top:12px;font-weight:700;color:var(--muted)}
+input, textarea, select{width:100%;padding:12px;margin-top:8px;border:1px solid rgba(15,45,60,0.06);border-radius:12px;background:linear-gradient(180deg,#fff,#f6fbfd);box-shadow:inset 0 2px 6px rgba(10,30,40,0.03);max-width:100%}
+
+/* Primary pill-style buttons to match the home page */
+button{display:inline-block;padding:10px 18px;border-radius:999px;border:none;background:linear-gradient(180deg,#06a0db,#0082c0);color:#fff;font-weight:800;box-shadow:0 12px 28px rgba(6,128,186,0.18);cursor:pointer}
+button.ghost{background:transparent;color:#073044;border:1px solid rgba(15,45,60,0.06);box-shadow:none}
+
+/* Demo login rectangular button and popup */
+.demo-btn{border-radius:8px;padding:8px 12px;background:linear-gradient(180deg,#0b83c2,#076f9b);box-shadow:none;font-weight:800;color:#fff;border:none}
+.demo-popup{position:absolute;right:0;top:38px;min-width:260px;background:#fff;border-radius:10px;box-shadow:0 12px 30px rgba(12,30,40,0.12);padding:8px;border:1px solid rgba(10,30,40,0.04);z-index:2400}
+.demo-item{display:block;width:100%;text-align:left;padding:10px;border-radius:8px;border:none;background:transparent;cursor:pointer;color:#073044}
+.demo-item:hover{background:linear-gradient(180deg,#f0fbff,#f7fdff)}
+.demo-item .small{color:#27506a}
+
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.row .col{flex:1 1 0;min-width:0}
+
+/* Active conversation highlight in inbox */
+.card.active{outline:3px solid rgba(6,160,219,0.12);box-shadow:0 8px 20px rgba(6,160,219,0.06);background:linear-gradient(180deg,#f0fbff,#f7fdff)}
+
+/* Layout tweaks for messaging columns (responsive) */
+.left-col{flex:0 0 min(320px,42vw);max-width:min(320px,42vw);padding-right:12px}
+@media(max-width:720px){ .left-col{flex:1 1 100%;max-width:100%;padding-right:0} }
+
+/* Right column (chat area) uses flex so the conversation can grow/shrink and the reply row can stick */
+.chat-right{flex:1;min-width:0;display:flex;flex-direction:column}
+
+/* Conversation view: allow flex growth and internal scrolling instead of expanding the page */
+#conversationView{flex:1 1 auto;max-height:56vh;overflow-y:auto;padding:12px;padding-bottom:88px}
+#conversationView::-webkit-scrollbar{width:10px;height:10px}
+#conversationView::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#cfeffb,#9fdff7);border-radius:8px}
+#conversationView::-webkit-scrollbar-track{background:transparent}
+
+/* Message bubble styles (left = other, right = me) */
+.msg{margin-top:12px;padding:10px;border-radius:10px;background:#f7f9fb;border:1px solid rgba(0,0,0,0.02)}
+.msg.success{background:linear-gradient(180deg,#ecfff8,#e6fff2);border:1px solid rgba(45,154,74,0.12);color:#195f3a}
+.msg div{word-wrap:break-word}
+
+/* Constrain message bubble width and align 'me' bubbles to the right */
+.msg{display:block;max-width:78%;}
+.msg.success{margin-left:auto}
+
+/* Tighter preview typography in conversation list */
+#conversationsList .card .preview{font-size:13px;color:#4a5560;margin-top:6px;opacity:0.95}
+
+/* Make conversation id less prominent */
+#conversationsList .card div > div:nth-child(2){font-size:12px;color:#7b8790;opacity:0.9}
+
+/* Slightly reduce left column padding so layout matches legacy widths */
+.left-col{padding-right:10px}
+
+/* Conversations list styling */
+#conversationsList .card{cursor:pointer;padding:12px;border-radius:10px;margin-bottom:8px;transition:box-shadow .15s,transform .12s}
+#conversationsList .card:hover{transform:translateY(-2px);box-shadow:0 10px 20px rgba(8,38,56,0.06)}
+#conversationsList .card > div:first-child{display:flex;justify-content:space-between;align-items:center}
+#conversationsList .card .preview{font-size:13px;color:#444;margin-top:8px;opacity:0.95}
+
+/* Unread pill — prefer using existing inline color but provide default sizing */
+.unread-pill{background:var(--accent);color:#fff;padding:6px 8px;border-radius:999px;font-weight:800;min-width:28px;text-align:center}
+
+/* Avatar helpers used across the dashboard */
+.avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,var(--accent),var(--accent-2));color:#fff;font-weight:800;box-shadow:0 6px 16px rgba(6,128,186,0.12)}
+
+/* Timestamp small text inside message bubble */
+.msg time{display:block;font-size:12px;color:#6b7780;margin-top:6px}
+
+/* Reply row: make input and button feel like a single control */
+.reply-row input{border-radius:999px;padding:12px 16px;border:1px solid rgba(15,45,60,0.06)}
+.reply-row button{border-radius:999px;padding:10px 18px;margin-left:8px}
+
+/* Conversation card layout tweaks for exact spacing */
+#conversationsList .card{padding:10px 12px;border-radius:12px}
+#conversationsList .card > div:first-child{gap:10px}
+
+/* Conversation active border and subtle background to mirror legacy */
+.card.active{outline:3px solid rgba(6,160,219,0.12);box-shadow:0 10px 24px rgba(6,160,219,0.06);background:linear-gradient(180deg,#f0fbff,#f7fdff)}
+
+/* Conversation header inside chat area */
+.chat-header{display:flex;align-items:center;gap:12px;padding:8px 6px;border-bottom:1px solid rgba(15,45,60,0.03);margin-bottom:8px}
+@media(max-width:720px){ .chat-header{padding:6px 4px} }
+
+/* Reply row sticks to the bottom of the chat area so it's always visible on mobile */
+.reply-row{position:sticky;bottom:0;background:linear-gradient(180deg,#fff,#f9fbfd);padding:8px 0;border-top:1px solid rgba(15,45,60,0.03)}
+
+/* Ensure tappable controls are large enough on narrow screens */
+@media(max-width:720px){
+	.card button, button { padding:14px 18px; font-size:1rem }
+	#workersPagination button { padding:12px 14px }
+}
+
+/* Toast styles (used by window.showToast) */
+.toast{display:inline-block;padding:10px 12px;border-radius:10px;color:#04212a;font-weight:700;box-shadow:0 8px 20px rgba(12,30,40,0.12)}
+.toast.success{background:linear-gradient(180deg,#e6fff2,#ecfff8);border:1px solid rgba(45,154,74,0.12)}
+.toast.error{background:linear-gradient(180deg,#ffecec,#ffdede);border:1px solid rgba(217,79,79,0.12)}
+.toast.info{background:linear-gradient(180deg,#f7fbff,#f0f9ff);border:1px solid rgba(6,128,186,0.06)}
+#toast-container{pointer-events:none}
+#toast-container .toast{pointer-events:auto}

@@ -51,6 +51,8 @@ const jobSchema = new mongoose.Schema({
         type: Date,
         required: [true, 'Due date is required']
     }
+    ,
+    applicants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Worker' }]
 }, {
     timestamps: true // Adds createdAt and updatedAt fields
 });

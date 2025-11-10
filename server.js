@@ -1,20 +1,27 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 const app = express();
+const path = require('path');
 const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  // Vite dev server default is 5173; prefer that for local development unless overridden
+  origin: process.env.CLIENT_URL || 'http://localhost:5173',
   credentials: true // Allow credentials (cookies)
 }));
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve frontend static pages (optional). This will make files under ./Frontend/pages
+// available at http://localhost:PORT/pages/<file>.html
+app.use('/pages', express.static(path.join(__dirname, 'Frontend', 'pages')));
 
 // MongoDB connection configuration
 // Priority: MONGODB_URI env var > Docker/local fallback
@@ -54,6 +61,60 @@ if (process.env.NODE_ENV !== 'test') {
         require('./models/Job').collection.createIndex({ createdAt: -1 })
       ]).then(() => {
         console.log('Database indexes created successfully');
+        // Seed stable demo accounts so the frontend Demo button can work reliably
+        (async function seedDemoAccounts(){
+          try {
+            const Worker = require('./models/Worker');
+            const demoList = [
+              { email: (process.env.DEMO_EMAIL || 'demo@pocketjob.test').toLowerCase().trim(), password: process.env.DEMO_PASSWORD || 'Demo123!', name: process.env.DEMO_NAME || 'Demo User', skills: process.env.DEMO_SKILLS || 'Demo skills, sample worker' },
+              { email: (process.env.DEMO_EMAIL_2 || 'alice@demo.test').toLowerCase().trim(), password: process.env.DEMO_PASSWORD_2 || 'Alice123!', name: process.env.DEMO_NAME_2 || 'Alice Demo', skills: process.env.DEMO_SKILLS_2 || 'Demo account Alice' },
+              { email: (process.env.DEMO_EMAIL_3 || 'bob@demo.test').toLowerCase().trim(), password: process.env.DEMO_PASSWORD_3 || 'Bob123!!', name: process.env.DEMO_NAME_3 || 'Bob Demo', skills: process.env.DEMO_SKILLS_3 || 'Demo account Bob' }
+            ];
+
+            const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 'your-access-secret-key';
+            const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'your-refresh-secret-key';
+
+            for(const acct of demoList){
+              try{
+                const existing = await Worker.findOne({ email: acct.email });
+                if(existing){
+                  // Update existing demo account to ensure known demo password and metadata
+                  try {
+                    existing.name = acct.name;
+                    existing.skills = acct.skills;
+                    // Overwrite password with demo password so DemoLogin works predictably
+                    existing.password = acct.password;
+                    // Clear previous demo-seed refresh tokens and add a fresh one
+                    existing.refreshTokens = existing.refreshTokens?.filter(t => t.device !== 'demo-seed') || [];
+                    const refreshToken = jwt.sign({ id: existing._id }, JWT_REFRESH_SECRET, { expiresIn: '30d' });
+                    existing.refreshTokens.push({ token: refreshToken, device: 'demo-seed' });
+                    await existing.save();
+                    console.log(`Demo account updated: ${acct.email} (password reset to demo value)`);
+                    continue;
+                  } catch (updateErr) {
+                    console.warn(`Failed to update existing demo account ${acct.email}:`, updateErr && updateErr.message ? updateErr.message : updateErr);
+                    continue;
+                  }
+                }
+
+                const demo = new Worker({ name: acct.name, email: acct.email, password: acct.password, skills: acct.skills });
+                await demo.save();
+
+                // Generate tokens and store refresh token for demo account
+                const accessToken = jwt.sign({ id: demo._id }, JWT_ACCESS_SECRET, { expiresIn: '1h' });
+                const refreshToken = jwt.sign({ id: demo._id }, JWT_REFRESH_SECRET, { expiresIn: '30d' });
+                demo.refreshTokens.push({ token: refreshToken, device: 'demo-seed' });
+                await demo.save();
+
+                console.log(`Demo account created: ${acct.email} (password: ${acct.password})`);
+              }catch(e){
+                console.warn('Failed to create demo account', acct.email, e && e.message ? e.message : e);
+              }
+            }
+          } catch (err) {
+            console.warn('Failed to seed demo accounts:', err && err.message ? err.message : err);
+          }
+        })();
       }).catch(err => {
         console.warn('Error creating database indexes:', err);
       });
@@ -88,6 +149,16 @@ app.use('/api/auth', authRoutes);
 app.use('/api', jobRoutes);
 app.use('/api', workerRoutes);
 app.use('/api', messageRoutes);
+
+// Serve built Vite client in production (dist)
+if (process.env.NODE_ENV === 'production') {
+  const clientDist = path.join(__dirname, 'dist');
+  console.log('Production mode: serving client from', clientDist);
+  app.use(express.static(clientDist));
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(clientDist, 'index.html'));
+  });
+}
 
 // Default route
 app.get('/', (req, res) => {

@@ -6,9 +6,16 @@ const {
   getAllJobs,
   getJobById,
   acceptJob,
+  kickWorker,
   updateJob,
-  deleteJob
+  deleteJob,
+  startJob,
+  completeJob,
+  cancelJob
 } = require('../controllers/jobController');
+
+// The jobController also exports applyJob, assignWorker, and unassignSelf (added later)
+const { applyJob, assignWorker, unassignSelf } = require('../controllers/jobController');
 
 // All job routes require authentication
 router.use(authMiddleware);
@@ -24,6 +31,27 @@ router.get('/jobs/:id', getJobById);
 
 // POST /api/jobs/:id/accept → Accept a job
 router.post('/jobs/:id/accept', acceptJob);
+
+// Worker applies to a job
+router.post('/jobs/:id/apply', applyJob);
+
+// Owner assigns a worker from applicants
+router.post('/jobs/:id/assign', assignWorker);
+
+// POST /api/jobs/:id/kick → Owner unassigns the worker
+router.post('/jobs/:id/kick', kickWorker);
+
+// POST /api/jobs/:id/unassign-self → Worker removes themselves from job
+router.post('/jobs/:id/unassign-self', unassignSelf);
+
+// POST /api/jobs/:id/start → Assigned worker starts job
+router.post('/jobs/:id/start', startJob);
+
+// POST /api/jobs/:id/complete → Assigned worker completes job
+router.post('/jobs/:id/complete', completeJob);
+
+// POST /api/jobs/:id/cancel → Owner cancels job
+router.post('/jobs/:id/cancel', cancelJob);
 
 // PUT /api/jobs/:id → Update a job by ID
 router.put('/jobs/:id', updateJob);
