@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
@@ -32,6 +33,9 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve static files from the Frontend directory
+app.use(express.static(path.join(__dirname, 'Frontend')));
 
 // MongoDB connection configuration
 // Priority: MONGODB_URI env var > Docker/local fallback
@@ -135,52 +139,9 @@ app.use('/api', jobRoutes);
 app.use('/api', workerRoutes);
 app.use('/api', messageRoutes);
 
-// Default route
+// Default route serves the index.html file
 app.get('/', (req, res) => {
-  res.json({
-    success: true,
-    data: {
-      message: 'Freelance Platform API is running!',
-      endpoints: {
-        authentication: [
-          'POST /api/auth/register - Register a new user',
-          'POST /api/auth/login - User login',
-          'POST /api/auth/logout - User logout'
-        ],
-        jobs: [
-          'POST /api/jobs - Create a new job',
-          'GET /api/jobs - Get all jobs',
-          'GET /api/jobs/:id - Get a specific job by ID',
-          'PUT /api/jobs/:id - Update a job by ID',
-          'DELETE /api/jobs/:id - Delete a job by ID'
-        ],
-        gigs: [
-          'GET /api/gigs - Browse all gigs',
-          'GET /api/gigs/categories - Get gig categories',
-          'POST /api/gigs - Create a new gig (auth required)',
-          'GET /api/gigs/user/me - Get my gigs (auth required)',
-          'PUT /api/gigs/:id - Update a gig (auth required)',
-          'DELETE /api/gigs/:id - Delete a gig (auth required)'
-        ],
-        orders: [
-          'POST /api/orders - Create a new order (auth required)',
-          'GET /api/orders - Get my orders (auth required)',
-          'GET /api/orders/:id - Get order details (auth required)',
-          'PUT /api/orders/:id/accept - Accept an order (seller)',
-          'PUT /api/orders/:id/start - Start work (seller)',
-          'PUT /api/orders/:id/deliver - Deliver order (seller)',
-          'PUT /api/orders/:id/complete - Complete order (buyer)'
-        ],
-        workers: [
-          'POST /api/workers - Create a new worker',
-          'GET /api/workers - Get all workers',
-          'GET /api/workers/:id - Get a specific worker by ID',
-          'PUT /api/workers/:id - Update a worker by ID',
-          'DELETE /api/workers/:id - Delete a worker by ID'
-        ]
-      }
-    }
-  });
+  res.sendFile(path.join(__dirname, 'Frontend', 'index.html'));
 });
 
 // Health check endpoint for CI/monitoring
