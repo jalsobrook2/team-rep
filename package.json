@@ -1,14 +1,31 @@
 {
-  "name": "backend-example",
+  "name": "team-rep",
   "version": "1.0.0",
-  "description": "Backend example using Express.js and Mongoose",
+  "description": "",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js",
+    "dev:server": "nodemon server.js",
+    "client": "vite --host",
+    "dev": "concurrently \"npm run dev:server\" \"npm run client\"",
+    "dev:client": "vite --host",
+    "client:build": "vite build",
+    "client:preview": "vite preview",
+    "dev:all": "concurrently \"npm run dev:server\" \"npm run client\"",
     "test": "jest --forceExit --detectOpenHandles",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage --forceExit --detectOpenHandles"
+    "test:coverage": "jest --coverage --forceExit --detectOpenHandles",
+    "smoke": "node scripts/smoke-test.js",
+    "lint": "eslint . --ext .js,.jsx",
+    "lint:fix": "eslint . --ext .js,.jsx --fix",
+    "cypress": "cypress open",
+    "cypress:run": "cypress run",
+    "cypress:headless": "cypress run --headless",
+    "start:prod": "cross-env NODE_ENV=production node server.js",
+    "test:e2e:prep": "npm run client:build",
+    "test:e2e:server": "npm run start:prod",
+    "test:e2e": "npm run test:e2e:prep && node scripts/run-e2e-tests.js",
+    "test:all": "npm run lint && npm run test:coverage && npm run test:e2e"
   },
   "keywords": [
     "express",
@@ -20,6 +37,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "axios": "^1.5.0",
     "bcryptjs": "^3.0.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -28,13 +46,26 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^7.8.7",
     "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react-dom": "^19.1.1",
+    "ws": "^8.13.0"
   },
   "devDependencies": {
+    "@vitejs/plugin-react": "^4.0.0",
+    "concurrently": "^8.2.2",
+    "cross-env": "^10.1.0",
+    "cypress": "^13.6.2",
+    "eslint": "^8.57.0",
+    "eslint-plugin-cypress": "^2.15.2",
+    "eslint-plugin-react": "^7.33.2",
     "jest": "^29.7.0",
     "jest-junit": "^16.0.0",
+    "mongodb-memory-server": "^8.12.0",
     "nodemon": "^3.1.10",
-    "supertest": "^6.3.3"
+    "npm-run-all": "^4.1.5",
+    "start-server-and-test": "^2.0.3",
+    "supertest": "^6.3.3",
+    "vite": "^5.0.0",
+    "wait-on": "^9.0.3"
   },
   "directories": {
     "test": "tests"

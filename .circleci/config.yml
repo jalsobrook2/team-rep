@@ -8,43 +8,53 @@ jobs:
         environment:
           MONGO_INITDB_DATABASE: backend-example-test
     
+    resource_class: medium
+    
     steps:
       - checkout
       
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "package.json" }}
-            - v1-dependencies-
+            - v2-dependencies-{{ checksum "package-lock.json" }}
+            - v2-dependencies-
       
       - run:
           name: Install Dependencies
-          command: npm install
+          command: npm ci
       
       - save_cache:
           paths:
             - node_modules
-          key: v1-dependencies-{{ checksum "package.json" }}
+          key: v2-dependencies-{{ checksum "package-lock.json" }}
       
       - run:
           name: Wait for MongoDB
           command: |
+            echo "Waiting for MongoDB to be ready..."
             for i in {1..30}; do
-              if nc -z localhost 27017; then
+              if bash -c '</dev/tcp/localhost/27017' >/dev/null 2>&1; then
+                echo "MongoDB port is open, waiting 3 seconds for full startup..."
+                sleep 3
                 echo "MongoDB is ready"
                 exit 0
               fi
               echo "Waiting for MongoDB... ($i/30)"
               sleep 2
             done
-            echo "MongoDB failed to start"
+            echo "MongoDB failed to start within 60 seconds"
             exit 1
       
       - run:
           name: Run Tests with Coverage
-          command: npm run test:coverage
+          command: npm run test:coverage -- --runInBand
+          no_output_timeout: 5m
           environment:
             NODE_ENV: test
             MONGODB_URI_TEST: mongodb://localhost:27017/backend-example-test
+            MONGODB_URI: mongodb://localhost:27017/backend-example-test
+            JWT_ACCESS_SECRET: test-access-secret-key-for-ci
+            JWT_REFRESH_SECRET: test-refresh-secret-key-for-ci
+            CI: true
       
       - store_test_results:
           path: coverage

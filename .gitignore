@@ -7,3 +7,12 @@ coverage/
 dist/
 *.tmp
 *.temp
+
+# Cypress
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/
+
+# Test artifacts
+junit.xml
+test-results/
