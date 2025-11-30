@@ -16,9 +16,9 @@ jobs:
             - v1-dependencies-{{ checksum "package.json" }}
             - v1-dependencies-
       
-      - run:
-          name: Install Dependencies
-          command: npm install
+        - run:
+          name: Install Dependencies (allow legacy peer deps)
+          command: npm install --legacy-peer-deps
       
       - save_cache:
           paths:
