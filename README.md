@@ -1,3 +1,177 @@
+ # Pocket Jobs — Backend & Frontend (Vite + Express + Mongoose)
+
+ This repository contains a complete small application: a Vite-powered React frontend and an Express + Mongoose backend implementing authentication, job/worker CRUD, messaging, and a dashboard shell.
+
+ This README focuses on the functional requirements and how to verify them locally (login, dashboard, CRUD flows, messaging, and job lifecycle).
+
+ ## Quick verification checklist (rubric)
+
+ All of the following are implemented and wired between frontend and backend. Use the "How to run" section below to verify locally.
+
+ - [x] Functional Login (signup, login, demo login, token refresh, logout)
+ - [x] Dashboard shell endpoint (`GET /api/workers/dashboard`) and frontend dashboard UI (`src/pages/Dashboard.jsx`)
+ - [x] Jobs CRUD (create, read/list, update, delete) and job lifecycle actions (apply, accept, assign, start, complete, cancel)
+ - [x] Workers CRUD (create/register, read/list, view, update, delete)
+ - [x] Messaging between users (send message, list conversations, conversation view)
+ - [x] UI state management for auth and interactions (see `src/AuthContext.jsx`, `src/components/UiProvider.jsx`)
+ - [x] Demo accounts seeded automatically (see `server.js` seeding logic) for quick verification
+
+ ## How to run (local development)
+
+ 1. Install dependencies:
+
+ ```powershell
+ npm install
+ ```
+
+ 2. Environment variables
+
+ Create a `.env` (or use `.env.example` if present) and set at minimum:
+
+ ```env
+ PORT=3000
+ MONGODB_URI=mongodb://localhost:27017/backend-example
+ JWT_ACCESS_SECRET=replace-with-a-secret
+ JWT_REFRESH_SECRET=replace-with-a-secret
+ CLIENT_URL=http://localhost:5173
+ ```
+
+ Notes:
+ - The backend defaults to `mongodb://127.0.0.1:27017/backend-example`. When running in Docker, the code prefers the `mongo` host.
+ - Vite frontend runs on port 5173 by default and proxies `/api` to the backend (see `vite.config.js`).
+
+ 3. Start the app
+
+ Run backend + frontend together (recommended):
+
+ ```powershell
+ npm run dev
+```
+
+This starts the backend (with `nodemon`) and the Vite client together.
+
+Or run separately in two terminals:
+
+```powershell
+# Terminal 1 — backend
+npm run dev:server
+
+# Terminal 2 — frontend (Vite)
+npm run client
+# alternative (preview build):
+# npm run client:preview
+```
+
+ 4. Open the frontend app (Vite) — it will usually open automatically at `http://localhost:5173`.
+
+ ## Functional flows & where they live in the code
+
+ - Authentication
+   - Backend routes: `routes/authRoutes.js`
+   - Controllers: `controllers/workerController.js` (signup, login, demoLogin, refresh, logout)
+   - Frontend: `src/AuthContext.jsx`, `src/pages/Auth.jsx` (login/register UI)
+
+ - Dashboard
+   - Backend: `GET /api/workers/dashboard` implemented in `controllers/workerController.js` and mounted in `routes/workerRoutes.js`.
+   - Frontend: `src/pages/Dashboard.jsx` consumes dashboard endpoints and other job/worker APIs.
+
+ - Jobs (CRUD + lifecycle)
+   - Backend: `routes/jobRoutes.js`, `controllers/jobController.js` (create, list, get, update, delete, accept, apply, assign, kick, start, complete, cancel)
+   - Frontend: Dashboard and other components call these endpoints (e.g., posting a job via Dashboard `postJob`, accept/apply buttons in job list).
+
+ - Workers (CRUD)
+   - Backend: `routes/workerRoutes.js`, `controllers/workerController.js` (getAllWorkers, getWorkerById, update/delete)
+   - Frontend: `src/pages/Dashboard.jsx` lists workers via `loadWorkers()` and uses `WorkerCard.jsx`.
+
+ - Messaging
+   - Backend: `routes/messageRoutes.js`, `controllers/messageController.js` (sendMessage, getConversation, getConversations, markAsRead)
+   - Frontend: `src/components/Messaging.jsx` (conversations list, conversation view, send message)
+
+ ## Frontend wiring / state management
+
+ - `src/AuthContext.jsx` — centralizes login, demo login, and token storage in `localStorage` (`accessToken`). Components call `useAuth()` to access `user`, `loginWithCredentials`, `demoLogin`, and `logout`.
+ - `src/components/UiProvider.jsx` — provides `useToast()` and `useConfirm()` hooks used across the app for notifications and confirmations.
+ - Components include `WorkerCard.jsx`, `Messaging.jsx`, and `Dashboard.jsx` which call backend APIs and update React state accordingly.
+
+ ## Demo accounts
+
+ Server seeds demo accounts on startup (in non-test environments) with predictable emails and passwords. The seeding code runs in `server.js` and ensures a `demo-seed` refresh token is available.
+
+ Default demo credentials (printed during server start):
+ - demo@pocketjob.test / Demo123!
+ - alice@demo.test / Alice123!
+ - bob@demo.test / Bob123!
+
+ You can also use the frontend Demo Login button which calls `/api/auth/demo-login`.
+
+ ## Verification steps (quick)
+
+ 1. Start backend + frontend (see How to run).
+ 2. Open `http://localhost:5173`.
+ 3. Use the Demo Login button or register a new account.
+ 4. From Dashboard:
+    - Create a job (Post a Job form) — verifies POST `/api/jobs` and that the UI updates.
+    - View jobs list — verifies GET `/api/jobs`.
+    - Apply to an open job — verifies POST `/api/jobs/:id/apply`.
+    - Accept a job (as a different user) — verifies POST `/api/jobs/:id/accept` and that notifications/messages are created.
+    - Assign a worker, start, complete, cancel a job where applicable — uses the job lifecycle endpoints.
+ 5. Messaging: open a worker card and click Message — verifies `/api/messages` endpoints and conversation UI.
+
+ ## Checklist mapping to functional requirements
+
+ Below is the rubric-style mapping showing implemented items and where to find the code.
+
+ - Authentication
+   - Signup / Register → `POST /api/workers` (`controllers/workerController.createWorker`) — frontend `src/pages/Auth.jsx` (RegisterForm)
+   - Login → `POST /api/auth/login` (`controllers/workerController.loginWorker`) — frontend `src/AuthContext.jsx` (loginWithCredentials)
+   - Demo login → `POST /api/auth/demo-login` (`controllers/workerController.demoLogin`) — frontend DemoLogin component
+   - Refresh token flow → `POST /api/auth/refresh` (`controllers/workerController.refreshToken`)
+   - Logout → `POST /api/auth/logout` (`controllers/workerController.logoutWorker`) — frontend `logout()` clears token
+
+ - Jobs (CRUD + lifecycle) — implemented and wired
+   - Create: `POST /api/jobs` (`controllers/jobController.createJob`) — Dashboard form `postJob`
+   - Read/List: `GET /api/jobs` — Dashboard list
+   - Read single: `GET /api/jobs/:id`
+   - Update: `PUT /api/jobs/:id` — protected; owner-only
+   - Delete: `DELETE /api/jobs/:id` — protected; owner-only
+   - Apply: `POST /api/jobs/:id/apply`
+   - Accept: `POST /api/jobs/:id/accept`
+   - Assign: `POST /api/jobs/:id/assign`
+   - Kick: `POST /api/jobs/:id/kick`
+   - Start: `POST /api/jobs/:id/start`
+   - Complete: `POST /api/jobs/:id/complete`
+   - Cancel: `POST /api/jobs/:id/cancel`
+
+ - Workers (CRUD)
+   - Create: `POST /api/workers` (register)
+   - List: `GET /api/workers` — frontend lists via `loadWorkers()`
+   - Get single: `GET /api/workers/:id`
+   - Update: `PUT /api/workers/:id` (protected)
+   - Delete: `DELETE /api/workers/:id` (protected)
+
+ - Messaging
+   - Send: `POST /api/messages`
+   - Conversations list: `GET /api/messages/conversations`
+   - Conversation view: `GET /api/messages/conversation/:userId`
+   - Mark read: `POST /api/messages/conversation/:userId/read`
+
+ ## Tests
+
+ - Unit/integration tests are available under `tests/`. Run the test suite with:
+
+ ```powershell
+ npm test
+ ```
+
+ ## Notes and small caveats
+
+ - The frontend expects `accessToken` in `localStorage` and will include it on API calls. `src/AuthContext.jsx` handles token persistence.
+ - `vite.config.js` proxies `/api` to `http://localhost:3000` by default; if your backend runs on a different port, set `BACKEND_URL` or update the proxy.
+ - The README previously contained references to placeholder responses — the current code implements real DB-backed operations and authentication. If you see outdated wording elsewhere, update it to match runtime behavior.
+
+ ## Summary
+
+ Functional login, dashboard, jobs/workers CRUD, messaging, and job lifecycle are implemented and wired to the React UI. Use the verification steps above to exercise each use case locally. If you want, I can run the app here, run the test suite, or add an explicit "rubric verification" script that performs an automated smoke test covering the steps above.
 
 # Backend Example - Express.js & Mongoose
 

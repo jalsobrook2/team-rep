@@ -9,23 +9,26 @@ const {
   getDashboard
 } = require('../controllers/workerController');
 
-// Protected routes that require authentication
-router.use(authMiddleware);
-
-
-// GET /api/workers → Get all workers
+// Public route: GET /api/workers → Get all workers
 router.get('/workers', getAllWorkers);
 
+// Protected routes that require authentication
 // GET /api/workers/dashboard → Get user dashboard shell (place before :id route)
-router.get('/workers/dashboard', getDashboard);
+router.get('/workers/dashboard', authMiddleware, getDashboard);
 
-// GET /api/workers/:id → Get a specific worker by ID
+// Reviews for workers
+// GET /api/workers/:id/reviews → list reviews for a worker (public)
+router.get('/workers/:id/reviews', require('../controllers/workerController').getReviews);
+// POST /api/workers/:id/reviews → post a review for a worker (protected)
+router.post('/workers/:id/reviews', authMiddleware, require('../controllers/workerController').postReview);
+
+// GET /api/workers/:id → Get a specific worker by ID (public)
 router.get('/workers/:id', getWorkerById);
 
-// PUT /api/jobs/:id → Update a worker by ID
-router.put('/workers/:id', updateWorker);
+// PUT /api/workers/:id → Update a worker by ID (protected)
+router.put('/workers/:id', authMiddleware, updateWorker);
 
-// DELETE /api/jobs/:id → Delete a worker by ID
-router.delete('/workers/:id', deleteWorker);
+// DELETE /api/workers/:id → Delete a worker by ID (protected)
+router.delete('/workers/:id', authMiddleware, deleteWorker);
 
 module.exports = router;

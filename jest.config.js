@@ -1,5 +1,9 @@
 module.exports = {
-  testEnvironment: 'node',
+  testEnvironment: 'jsdom',
+  setupFiles: ['<rootDir>/tests/jest.setup.js'],
+  transform: {
+    '^.+\\.(js|jsx|ts|tsx)$': 'babel-jest'
+  },
   coverageDirectory: 'coverage',
   collectCoverageFrom: [
     'controllers/**/*.js',
@@ -9,8 +13,10 @@ module.exports = {
     '!node_modules/**'
   ],
   testMatch: [
-    '**/tests/**/*.test.js'
+    '**/tests/**/*.test.js',
+    '**/tests/**/*.test.jsx'
   ],
+  moduleFileExtensions: ['js','jsx','json','node'],
   verbose: true,
   testTimeout: 60000,
   coverageThreshold: {

@@ -39,6 +39,18 @@ const jobSchema = new mongoose.Schema({
         trim: true,
         maxlength: [200, 'Location cannot exceed 200 characters']
     },
+    // Optional GeoJSON point for precise coordinates (stored as [lng, lat])
+    // Keep this optional: don't set a default so documents without coordinates
+    // don't include an incomplete GeoJSON object (which MongoDB rejects).
+    locationCoords: {
+        type: {
+            type: String,
+            enum: ['Point']
+        },
+        coordinates: {
+            type: [Number] // [lng, lat]
+        }
+    },
 
     offer: {
         type: Number,
@@ -51,6 +63,21 @@ const jobSchema = new mongoose.Schema({
         type: Date,
         required: [true, 'Due date is required']
     }
+    ,
+    applicants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Worker' }]
+    ,
+    // Recurrence metadata for jobs that repeat on a schedule
+    recurring: {
+        enabled: { type: Boolean, default: false },
+            // frequency: how often the job repeats (e.g. daily, weekly, monthly)
+            // Include `null` as an allowed enum value to tolerate older documents
+            // that explicitly stored `null` for frequency.
+            frequency: { type: String, enum: ['daily', 'weekly', 'monthly', null], default: undefined },
+        // interval: every N frequency units (e.g. every 2 weeks)
+        interval: { type: Number, default: 1, min: 1 },
+        // optional end date for the recurrence series
+        endDate: { type: Date, default: null }
+    }
 }, {
     timestamps: true // Adds createdAt and updatedAt fields
 });
@@ -60,6 +87,8 @@ jobSchema.index({ owner: 1 });
 jobSchema.index({ assignedTo: 1 });
 jobSchema.index({ status: 1 });
 jobSchema.index({ createdAt: -1 });
+// Geospatial index for location coordinates (if provided)
+jobSchema.index({ locationCoords: '2dsphere' });
 
 // Add methods to change job status
 jobSchema.methods.accept = async function(workerId) {

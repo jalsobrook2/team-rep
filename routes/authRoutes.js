@@ -5,7 +5,9 @@ const {
   loginWorker,
   logoutWorker,
   refreshToken
+  
 } = require('../controllers/workerController');
+const { demoLogin } = require('../controllers/workerController');
 const authMiddleware = require('../middleware/auth');
 
 // POST /api/auth/signup → Create a new account
@@ -13,6 +15,9 @@ router.post('/signup', createWorker);
 
 // POST /api/auth/login → Login to account
 router.post('/login', loginWorker);
+
+// POST /api/auth/demo-login → Login using demo account (no password required)
+router.post('/demo-login', demoLogin);
 
 // POST /api/auth/logout → Logout from account (protected route)
 router.post('/logout', authMiddleware, logoutWorker);

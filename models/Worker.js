@@ -15,7 +15,8 @@ const workerSchema = new mongoose.Schema({
         unique: true,
         trim: true,
         lowercase: true,
-        match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email address']
+        // Allow modern TLDs (e.g. .technology, .company) — use a simple, permissive but practical pattern
+        match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Please enter a valid email address']
     },
 
     password: {
@@ -29,6 +30,31 @@ const workerSchema = new mongoose.Schema({
         required: [true, 'Skills are required'],
         trim: true,
         maxlength: [200, 'Skills cannot exceed 200 characters']
+    },
+
+    phone: {
+        type: String,
+        trim: true,
+        maxlength: [30, 'Phone cannot exceed 30 characters'],
+        default: null
+    },
+
+    // Optional profile location (human readable) and GeoJSON coordinates
+    location: {
+        type: String,
+        trim: true,
+        maxlength: [200, 'Location cannot exceed 200 characters'],
+        default: null
+    },
+
+    locationCoords: {
+        type: {
+            type: String,
+            enum: ['Point']
+        },
+        coordinates: {
+            type: [Number]
+        }
     },
 
     postedJobs: [{
@@ -66,14 +92,35 @@ const workerSchema = new mongoose.Schema({
             expires: 30 * 24 * 60 * 60 // 30 days TTL
         }
     }]
+        ,
+        // Reviews left by job posters for this worker
+        reviews: [{
+                reviewer: { type: mongoose.Schema.Types.ObjectId, ref: 'Worker' },
+                rating: { type: Number, min: 1, max: 5, required: true },
+                comment: { type: String, trim: true, maxlength: 1000, default: '' },
+                createdAt: { type: Date, default: Date.now }
+        }]
 }, 
 {
   timestamps: true // This adds createdAt and updatedAt fields automatically
 });
 
+// Virtual: average rating and count
+workerSchema.virtual('avgRating').get(function(){
+    if(!this.reviews || this.reviews.length === 0) return null;
+    const sum = this.reviews.reduce((s, r) => s + (r.rating||0), 0);
+    return Math.round((sum / this.reviews.length) * 10) / 10; // one decimal
+});
+
+workerSchema.virtual('reviewCount').get(function(){
+    return (this.reviews && this.reviews.length) || 0;
+});
+
 // Add indexes for better query performance
 workerSchema.index({ timestamp: -1 });
 workerSchema.index({ email: 1 });
+// Geospatial index for worker coordinates (optional)
+workerSchema.index({ locationCoords: '2dsphere' });
 
 // Hash password before saving
 workerSchema.pre('save', async function(next) {

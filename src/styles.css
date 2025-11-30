@@ -1,0 +1,407 @@
+:root{--accent:#06a0db;--accent-2:#0082c0;--muted:#3f4950;--success:#2d9a4a;--danger:#d9534f;--msg-min-width:280px}
+*{box-sizing:border-box}
+/* Ensure the document can use viewport-relative sizing reliably */
+html,body{height:100%}
+/* root layout: make body a column flex container so main can shrink and scroll */
+body{display:flex;flex-direction:column;min-height:100vh;font-family:'Frutiger', 'Segoe UI', Arial, sans-serif;margin:0;background:linear-gradient(180deg,#f3f7fa,#e8f3f8);color:#0b2336;padding:16px}
+.small{font-size:0.92rem;color:var(--muted)}
+button{background:var(--accent);color:#fff;border:none;padding:8px 12px;border-radius:12px}
+button.ghost{background:transparent;color:#073044;border:1px solid rgba(15,45,60,0.06)}
+input,textarea{border:1px solid #ddd;border-radius:8px;padding:8px}
+.card{padding:12px;border-radius:12px;background:linear-gradient(180deg,#fbfdff,#f7fbfc);border:1px solid rgba(15,45,60,0.04);box-shadow:0 4px 10px rgba(12,30,40,0.04)}
+.left-col{flex:0 0 min(320px,42vw);max-width:min(320px,42vw);padding-right:12px}
+
+/* Ensure messaging columns can shrink and their scrollable children can work
+	properly inside flex layouts (fixes content escape on foldables/tall phones) */
+.chat-right{flex:1;min-width:0;display:flex;flex-direction:column;min-height:0;overflow-x:auto}
+#conversationView{flex:1 1 auto;min-height:0;overflow-y:auto;padding:12px;padding-bottom:88px}
+/* reply-row consolidated above */
+
+@media(max-width:720px){
+	.card button, button { padding:14px 18px; font-size:1rem }
+}
+
+/* Legacy dashboard layout pieces (ported from Frontend/pages/dashboard.html) */
+.app{max-width:980px;margin:0 auto;display:flex;flex-direction:column;min-height:calc(100vh - 32px)}
+header{display:flex;align-items:center;justify-content:space-between;padding:12px 0}
+h1{font-size:1.25rem;margin:0;color:var(--accent)}
+.auth-row{display:flex;gap:8px;align-items:center}
+.tab-bar{display:flex;gap:10px;margin:14px 0;overflow:auto}
+.tab-btn{flex:1;min-width:clamp(72px,20vw,110px);text-align:center;padding:10px 12px;border-radius:14px;border:none;background:linear-gradient(180deg,#06a0db,#0082c0);color:#fff;font-weight:800;box-shadow:0 12px 28px rgba(6,128,186,0.14)}
+.tab-btn[aria-pressed="true"], .tab-btn.active{outline:2px solid rgba(255,255,255,0.12);transform:translateY(-1px)}
+.tab-btn:hover{filter:brightness(1.06);transform:translateY(-2px)}
+main{background:linear-gradient(180deg,rgba(255,255,255,0.9),#fff);border-radius:14px;padding:18px;box-shadow:0 8px 24px rgba(19,44,59,0.08);border:1px solid rgba(31,127,179,0.06);flex:1 1 auto;min-height:0;overflow:auto}
+.panel{display:none}
+.panel.active{display:block}
+.list{display:grid;gap:10px}
+.card{padding:12px;border-radius:12px;background:linear-gradient(180deg,#fbfdff,#f7fbfc);border:1px solid rgba(15,45,60,0.04);box-shadow:0 4px 10px rgba(12,30,40,0.04)}
+label{display:block;margin-top:12px;font-weight:700;color:var(--muted)}
+input, textarea, select{width:100%;padding:12px;margin-top:8px;border:1px solid rgba(15,45,60,0.06);border-radius:12px;background:linear-gradient(180deg,#fff,#f6fbfd);box-shadow:inset 0 2px 6px rgba(10,30,40,0.03);max-width:100%}
+
+/* Primary pill-style buttons to match the home page */
+button{display:inline-block;padding:clamp(8px,1.8vw,12px) clamp(10px,2.8vw,18px);border-radius:999px;border:none;background:linear-gradient(180deg,#06a0db,#0082c0);color:#fff;font-weight:800;box-shadow:0 12px 28px rgba(6,128,186,0.18);cursor:pointer}
+button.ghost{background:transparent;color:#073044;border:1px solid rgba(15,45,60,0.06);box-shadow:none}
+
+/* Demo login rectangular button and popup */
+.demo-btn{border-radius:8px;padding:8px 12px;background:linear-gradient(180deg,#0b83c2,#076f9b);box-shadow:none;font-weight:800;color:#fff;border:none}
+.demo-popup{position:absolute;right:0;top:38px;min-width:260px;background:#fff;border-radius:10px;box-shadow:0 12px 30px rgba(12,30,40,0.12);padding:8px;border:1px solid rgba(10,30,40,0.04);z-index:2400}
+.demo-item{display:block;width:100%;text-align:left;padding:10px;border-radius:8px;border:none;background:transparent;cursor:pointer;color:#073044}
+.demo-item:hover{background:linear-gradient(180deg,#f0fbff,#f7fdff)}
+.demo-item .small{color:#27506a}
+
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.row .col{flex:1 1 0;min-width:0}
+
+/* Helper for inline control rows used across dashboard (keeps desktop look) */
+.controls-row{display:flex;gap:12px;align-items:center;margin-bottom:8px}
+.controls-row > *{min-width:0}
+
+/* Job search box sizing: stays inside the white panel and is responsive */
+.job-search{display:flex;align-items:center;gap:8px;flex:0 1 320px;min-width:160px}
+.job-search input{width:100%;padding:8px;border-radius:8px;border:1px solid rgba(15,45,60,0.06);background:linear-gradient(180deg,#fff,#f6fbfd);box-shadow:inset 0 2px 6px rgba(10,30,40,0.03)}
+.job-search button.ghost{padding:6px 10px}
+
+/* clickable keyword and skill tag styles used in worker cards */
+.keyword-link{background:none;border:none;padding:0;color:var(--accent-2);cursor:pointer;font-weight:700;text-decoration:underline;font-size:1rem}
+.skill-tag{background:transparent;border:1px solid rgba(6,128,186,0.08);padding:6px 8px;border-radius:999px;margin-right:6px;margin-top:6px;cursor:pointer;color:var(--accent-2);font-weight:700}
+
+/* Range input class used in pages to centralize size and make it responsive */
+.range-input{width:clamp(140px,34vw,220px)}
+
+/* Active conversation highlight in inbox */
+.card.active{outline:3px solid rgba(6,160,219,0.12);box-shadow:0 8px 20px rgba(6,160,219,0.06);background:linear-gradient(180deg,#f0fbff,#f7fdff)}
+
+/* Layout tweaks for messaging columns (responsive) */
+.left-col{flex:0 0 min(320px,42vw);max-width:min(320px,42vw);padding-right:12px}
+@media(max-width:720px){ .left-col{flex:1 1 100%;max-width:100%;padding-right:0} }
+
+/* Messaging component root: allow wrapping so left and right columns stack on small screens */
+.messaging-root{display:flex;gap:12px;align-items:flex-start}
+.messaging-root > .left-col{flex:0 0 min(320px,42vw);width:min(320px,42vw);}
+.messaging-root > .chat-right{flex:1 1 0;min-width:0}
+
+/* On narrower viewports stack the messaging columns vertically so the
+	 chat pane is always visible below the conversations list. This avoids
+	 situations where a fixed left column pushes the chat off-screen. */
+@media (max-width: 720px) {
+	.messaging-root{flex-direction:column}
+	.messaging-root > .left-col, .messaging-root > .chat-right{flex:1 1 100%;width:100%;max-width:100%;padding-right:0}
+}
+
+/* Right column (chat area) uses flex so the conversation can grow/shrink and the reply row can stick */
+.chat-right{flex:1;min-width:0;display:flex;flex-direction:column}
+
+/* Conversation view: allow flex growth and internal scrolling instead of expanding the page */
+#conversationView{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:auto;padding:12px;padding-bottom:88px;display:flex;flex-direction:column;gap:8px;box-sizing:border-box;min-width:var(--msg-min-width)}
+#conversationView::-webkit-scrollbar{width:10px;height:10px}
+#conversationView::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#cfeffb,#9fdff7);border-radius:8px}
+#conversationView::-webkit-scrollbar-track{background:transparent}
+
+/* Message bubble styles (left = other, right = me) */
+.msg{
+	margin-top:12px;
+	padding:10px;
+	border-radius:10px;
+	background:#f7f9fb;
+	border:1px solid rgba(0,0,0,0.02);
+	/* inline-block lets the bubble size to its contents while respecting max-width */
+	display:inline-block;
+	max-width: min(720px, 78%);
+	width: auto;
+	word-wrap:break-word;
+	/* ensure a readable minimum width even on very narrow phones */
+	min-width: var(--msg-min-width, 320px);
+}
+.msg.success{
+	background:linear-gradient(180deg,#ecfff8,#e6fff2);
+	border:1px solid rgba(45,154,74,0.12);
+	color:#195f3a;
+	/* align to the right inside a flex/column container */
+	align-self:flex-end;
+}
+.msg div{word-wrap:break-word}
+
+/* conversationView defined above (unified) */
+
+/* Tighter preview typography in conversation list */
+#conversationsList .card .preview{font-size:13px;color:#4a5560;margin-top:6px;opacity:0.95}
+
+/* Make conversation id less prominent */
+#conversationsList .card div > div:nth-child(2){font-size:12px;color:#7b8790;opacity:0.9}
+
+/* Slightly reduce left column padding so layout matches legacy widths */
+.left-col{padding-right:10px}
+
+/* Conversations list styling */
+#conversationsList .card{cursor:pointer;padding:12px;border-radius:10px;margin-bottom:8px;transition:box-shadow .15s,transform .12s}
+#conversationsList .card:hover{transform:translateY(-2px);box-shadow:0 10px 20px rgba(8,38,56,0.06)}
+#conversationsList .card > div:first-child{display:flex;justify-content:space-between;align-items:center}
+#conversationsList .card .preview{font-size:13px;color:#444;margin-top:8px;opacity:0.95}
+
+/* Unread pill — prefer using existing inline color but provide default sizing */
+.unread-pill{background:var(--accent);color:#fff;padding:6px 8px;border-radius:999px;font-weight:800;min-width:28px;text-align:center}
+
+/* Avatar helpers used across the dashboard */
+.avatar{width:clamp(32px,8vw,48px);height:clamp(32px,8vw,48px);border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,var(--accent),var(--accent-2));color:#fff;font-weight:800;box-shadow:0 6px 16px rgba(6,128,186,0.12);font-size:calc(0.7rem + 0.2vw)}
+
+/* Top-left user badge (desktop fixed overlay) */
+#userBadge{position:fixed;left:16px;top:16px;z-index:2200;display:flex;align-items:center;gap:8px}
+
+/* Worker card: moved from inline styles for better responsive control */
+.worker-card{display:flex;align-items:center;gap:12px;padding:8px;border:1px solid #eee;border-radius:8px;margin-bottom:8px}
+.worker-card .worker-avatar{width:clamp(40px,10vw,48px);height:clamp(40px,10vw,48px);border-radius:50%;display:flex;align-items:center;justify-content:center;background:#06a0db;color:#fff;font-weight:800;font-size:14px}
+
+/* Home logo box scales with viewport */
+.home-logo{width:clamp(48px,12vw,64px);height:clamp(48px,12vw,64px);display:flex;align-items:center;justify-content:center;border-radius:12px;background:linear-gradient(180deg,#06a0db,#0082c0);color:#fff;font-weight:800;font-size:calc(0.9rem + 0.4vw)}
+
+/* Larger avatar for profile, responsive */
+.avatar-lg{width:clamp(56px,14vw,80px);height:clamp(56px,14vw,80px);font-size:calc(1rem + 0.6vw)}
+
+/* Messaging send controls: responsive column that can shrink on phones */
+.msg-controls{flex:0 0 min(120px,28%);display:flex;flex-direction:column;align-items:flex-end}
+@media (max-width:420px){ .msg-controls{flex:1 1 auto;min-width:0;align-items:flex-start} }
+
+/* worker-card inner text styling */
+.worker-card-body{flex:1}
+.worker-name{font-weight:700}
+.worker-email{font-size:13px;color:#666}
+.worker-skills{font-size:13px;color:#888}
+.worker-distance{font-size:12px;color:#444;margin-top:6px}
+.worker-joined{font-size:12px;color:#999;margin-top:6px}
+
+/* Messaging receiver side column */
+.msg-side{flex:0 0 220px}
+
+/* Responsive utility classes for fluid sizing */
+.form-constrained-520{max-width:min(520px,100%)}
+.form-constrained-420{max-width:min(420px,100%)}
+.constrained-560{max-width:min(560px,100%)}
+.constrained-760{max-width:min(760px,100%)}
+.app-container{max-width:min(980px,100%);margin:0 auto;padding:16px}
+
+/* Header helper classes for responsive tweaks */
+.app-header{display:flex;justify-content:space-between;align-items:center}
+.app-header-left{display:flex;align-items:center;gap:12px}
+
+.demo-item-right{text-align:right;min-width:80px}
+
+/* Auth page side card that can be constrained on wide screens but shrink on phones */
+.auth-side{flex:1;min-width:320px}
+@media (max-width: 420px){ .auth-side{min-width:0} }
+
+/* User menu base style (was inline) */
+.user-menu{position:absolute;left:0;top:56px;background:#fff;border:1px solid #eee;box-shadow:0 6px 16px rgba(0,0,0,0.08);border-radius:8px;padding:8px;min-width:160px}
+
+/* Small numeric value used next to sliders */
+.small-value{text-align:right;min-width:48px}
+
+@media (max-width: 420px) {
+	.msg-side{flex:1 1 auto;min-width:140px}
+}
+
+/* On very small screens (iPhone SE and similar), stack the messaging columns
+	 vertically so the right-side chat pane is visible below the left column.
+	 Also ensure the conversation frame and reply row use full width so they
+	 remain readable; horizontal scrolling remains available inside those
+	 elements if message width exceeds viewport. */
+@media (max-width: 480px) {
+	.left-col{flex:1 1 100%;max-width:100%;padding-right:0}
+	.chat-right{flex:1 1 100%;max-width:100%;min-width:0}
+	#conversationView{min-width:100%;overflow-x:auto}
+	.reply-row{min-width:100%;overflow-x:auto}
+}
+
+/* Preserve readable bubble size on very narrow phones (iPhone SE etc.) by
+	 keeping message bubbles near their original width and allowing the
+	 conversation area to scroll horizontally if needed. This prevents
+	 bubbles being squished to unreadable widths while still keeping the
+	 overall layout responsive. */
+@media (max-width: 480px) {
+	/* allow horizontal scrolling inside the conversation pane on small screens */
+	#conversationView{overflow-x:auto}
+	/* keep messages from shrinking below a comfortable width (configurable via root var) */
+	.msg{min-width:var(--msg-min-width);max-width:none}
+}
+
+/* Handle tall narrow devices (e.g. large phones in portrait 600x1000+) by
+	 allowing the main content area to scroll independently and ensuring
+	 chat/conversation areas size relative to the viewport so the page doesn't
+	 try to constrain everything into a single non-scrollable container. */
+@media (max-width: 700px) and (min-height: 900px) {
+	/* Let the main white panel be constrained to the viewport height minus header */
+	main{max-height: calc(100vh - 140px); overflow-y: auto}
+	/* Make conversation area use remaining space and be scrollable itself */
+	#conversationView{max-height: calc(100vh - 300px); overflow-y: auto}
+	/* Add a little bottom padding so sticky reply row doesn't cover content */
+	.app{padding-bottom:20px}
+}
+
+/* Timestamp small text inside message bubble */
+.msg time{display:block;font-size:12px;color:#6b7780;margin-top:6px}
+
+/* Reply row: make input and button feel like a single control */
+/* Make reply row a responsive flex row so the input expands and is not squished */
+.reply-row{position:sticky;bottom:0;background:linear-gradient(180deg,#fff,#f9fbfd);padding:8px;display:flex;gap:8px;align-items:center;box-sizing:border-box;width:100%;overflow-x:auto;min-width:var(--msg-min-width)}
+.reply-row input{flex:1 1 auto;min-width:var(--msg-min-width,320px);border-radius:999px;padding:12px 16px;border:1px solid rgba(15,45,60,0.06);font-size:1rem}
+.reply-row button{flex:0 0 auto;border-radius:999px;padding:10px 18px;margin-left:8px}
+
+/* Mobile-specific guard: ensure reply input keeps usable size on very small screens */
+@media (max-width:420px){
+	.reply-row{padding:8px}
+	.reply-row input{padding:12px 14px;font-size:0.98rem}
+	.reply-row button{padding:10px 14px}
+}
+
+/* Conversation card layout tweaks for exact spacing */
+#conversationsList .card{padding:10px 12px;border-radius:12px}
+#conversationsList .card > div:first-child{gap:10px}
+
+/* Conversation active border and subtle background to mirror legacy */
+.card.active{outline:3px solid rgba(6,160,219,0.12);box-shadow:0 10px 24px rgba(6,160,219,0.06);background:linear-gradient(180deg,#f0fbff,#f7fdff)}
+
+/* Conversation header inside chat area */
+.chat-header{display:flex;align-items:center;gap:12px;padding:8px 6px;border-bottom:1px solid rgba(15,45,60,0.03);margin-bottom:8px}
+@media(max-width:720px){ .chat-header{padding:6px 4px} }
+
+/* reply-row consolidated above */
+
+/* Ensure tappable controls are large enough on narrow screens */
+@media(max-width:720px){
+	.card button, button { padding:14px 18px; font-size:1rem }
+	#workersPagination button { padding:12px 14px }
+
+	/* Make header/nav and tab buttons wrap and slightly reduce font-size on tablet/phone widths
+	   so long labels (e.g. "Accepted Jobs", "Messaging", "Schedule") fit without changing
+	   the button box size. This doesn't alter padding or min-width. */
+	header nav button, .tab-btn {
+		white-space: normal;
+		line-height: 1.05;
+		overflow-wrap: anywhere;
+		word-break: break-word;
+		font-size: clamp(0.82rem, 1.6vw, 0.95rem);
+	}
+}
+
+/* Toast styles (used by window.showToast) */
+.toast{display:inline-block;padding:10px 12px;border-radius:10px;color:#04212a;font-weight:700;box-shadow:0 8px 20px rgba(12,30,40,0.12)}
+.toast{max-width:min(360px,90vw)}
+.toast.success{background:linear-gradient(180deg,#e6fff2,#ecfff8);border:1px solid rgba(45,154,74,0.12)}
+.toast.error{background:linear-gradient(180deg,#ffecec,#ffdede);border:1px solid rgba(217,79,79,0.12)}
+.toast.info{background:linear-gradient(180deg,#f7fbff,#f0f9ff);border:1px solid rgba(6,128,186,0.06)}
+#toast-container{pointer-events:none}
+#toast-container .toast{pointer-events:auto}
+
+/* Mobile (targeting small phones ~360px width) overrides */
+@media (max-width: 420px) {
+	/* reduce overall page padding so main white box fits comfortably */
+	body{padding:10px}
+	.app{max-width:100%;padding:0 6px}
+
+	/* Header: allow nav buttons to wrap and be smaller. Keep button size, allow text to wrap. */
+	header nav{display:flex;flex-wrap:wrap;gap:6px}
+	header nav button{padding:8px 12px;font-size:0.92rem;white-space:normal;line-height:1.05;overflow-wrap:anywhere;word-break:break-word}
+
+	/* Tab buttons should be smaller to avoid forced wrapping; allow the text to wrap inside the button
+	   without changing the button padding or min-width. */
+	.tab-btn{min-width:72px;padding:8px 10px;font-size:0.9rem;white-space:normal;line-height:1.05;overflow-wrap:anywhere;word-break:break-word}
+
+	/* Range inputs: use full width of available space */
+	#radiusInput, #workersRadiusInput, .range-input{width:100% !important}
+	#radiusInput + .small, #workersRadiusInput + .small, .range-input + .small{min-width:48px}
+
+	/* Make control rows wrap on narrow screens to avoid overflow */
+	.controls-row{flex-wrap:wrap}
+	.controls-row > *{flex:1 1 auto;min-width:0}
+
+	/* Make the job search expand to full width on tiny screens */
+	.job-search{flex:1 1 100%;min-width:0}
+	.job-search input{min-width:0}
+
+	/* Move top-left user badge into the document flow on small screens */
+	#userBadge{position:relative !important;left:auto !important;top:auto !important;margin-bottom:8px !important;z-index:auto !important}
+
+	/* User menu and demo popup: allow them to shrink to viewport width */
+	.demo-popup, .user-menu{min-width:unset !important;max-width:90vw;right:8px;left:auto}
+	.user-menu{left:8px;right:8px}
+
+	/* Reduce list/card padding and font sizing for narrow devices */
+	.card{padding:10px;border-radius:10px}
+	.worker-card{gap:10px}
+	.worker-card .worker-avatar{width:40px;height:40px;border-radius:20px;font-size:14px}
+
+	/* Reduce padding for error box on small screens */
+	.error-box{padding:12px;max-width:min(900px,100%);margin:24px auto;background:#fff6f6;border:1px solid #f2c2c2;border-radius:12px}
+
+
+/* Desktop/default error box styling */
+.error-box{padding:20px;max-width:900px;margin:40px auto;background:#fff6f6;border:1px solid #f2c2c2;border-radius:12px}
+	/* Make paragraphs use most of viewport, but keep readable measure */
+	section p, .card p{max-width:90vw}
+
+	/* Demo/login buttons and primary actions: slightly reduce size so they fit */
+	button{padding:8px 10px;font-size:0.95rem}
+
+	/* Ensure worker cards wrap and do not overflow their container on very narrow screens */
+	.worker-card{width:100%;box-sizing:border-box;flex-wrap:wrap;align-items:flex-start}
+	.worker-card .worker-card-body{min-width:0;overflow-wrap:anywhere}
+	.worker-card > div:last-child{flex:0 0 100%;margin-top:8px;display:flex;justify-content:flex-end}
+	.worker-card .worker-avatar{flex:0 0 auto}
+
+	/* Ensure pagination controls are usable on mobile */
+	#workersPagination{gap:6px}
+	#workersPagination .ghost, #workersPagination button{padding:8px 10px}
+
+	/* Messaging tweaks: reduce message bubble max width so content wraps nicely */
+	.msg{max-width:86%}
+}
+
+/* Toast container and confirm modal styles centralized */
+.toast-container{position:fixed;right:16px;top:16px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.confirm-modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:10000}
+.confirm-overlay{position:absolute;inset:0;background:rgba(2,8,12,0.35)}
+.confirm-dialog{background:#fff;border-radius:12px;padding:20px;max-width:min(520px,90%);width:90%;box-shadow:0 20px 60px rgba(2,8,12,0.24);z-index:10001}
+
+/* Schedule week view styles */
+.schedule-week {
+	display: grid;
+	grid-template-columns: repeat(7, 1fr);
+	gap: 12px;
+}
+.schedule-day {
+	border: 1px solid rgba(0,0,0,0.08);
+	border-radius: 6px;
+	padding: 8px;
+	min-height: 120px;
+	background: #fff;
+	display: flex;
+	flex-direction: column;
+}
+.schedule-day-header {
+	font-weight: 700;
+	margin-bottom: 8px;
+	font-size: 0.9rem;
+}
+.schedule-day-body {
+	flex: 1 1 auto;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+.event-card {
+	border: 1px solid rgba(0,0,0,0.06);
+	padding: 8px;
+	border-radius: 6px;
+	background: #fbfbff;
+}
+
+@media (max-width: 800px) {
+	.schedule-week {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}
+
+@media (max-width: 480px) {
+	.schedule-week {
+		grid-template-columns: 1fr;
+	}
+}

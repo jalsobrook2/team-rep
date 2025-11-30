@@ -28,8 +28,10 @@ jobs:
       - run:
           name: Wait for MongoDB
           command: |
+            # Use a bash TCP open check (no nc dependency) to wait for MongoDB to accept connections.
             for i in {1..30}; do
-              if nc -z localhost 27017; then
+              # /dev/tcp is a bash built-in that attempts to open a TCP connection.
+              if (echo > /dev/tcp/127.0.0.1/27017) >/dev/null 2>&1; then
                 echo "MongoDB is ready"
                 exit 0
               fi

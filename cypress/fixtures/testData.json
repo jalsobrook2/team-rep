@@ -1,0 +1,21 @@
+{
+  "testUser": {
+    "name": "Test User",
+    "email": "test@example.com",
+    "password": "Test123!",
+    "skills": "JavaScript, React, Node.js"
+  },
+  "testWorker": {
+    "name": "Test Worker",
+    "email": "worker@example.com",
+    "password": "Worker123!",
+    "skills": "Testing, QA"
+  },
+  "testJob": {
+    "title": "Test Job Position",
+    "description": "This is a test job for E2E testing",
+    "location": "Remote",
+    "offer": 100,
+    "timeDue": "2025-12-31"
+  }
+}
