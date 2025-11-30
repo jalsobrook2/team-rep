@@ -5,6 +5,23 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
+// Optional Sentry initialization (backend)
+let Sentry;
+try{
+  Sentry = require('@sentry/node');
+  const SENTRY_DSN = process.env.SENTRY_DSN || '';
+  if (SENTRY_DSN) {
+    Sentry.init({
+      dsn: SENTRY_DSN,
+      environment: process.env.NODE_ENV || 'development',
+      tracesSampleRate: parseFloat(process.env.SENTRY_TRACES_SAMPLE_RATE || '0.05') || 0.05,
+    });
+    console.log('Sentry initialized for backend');
+  }
+}catch(e){
+  // If @sentry/node isn't installed, skip gracefully
+}
+
 const app = express();
 const path = require('path');
 const PORT = process.env.PORT || 3000;
@@ -60,6 +77,12 @@ app.use((req, res, next) => {
   } catch (e) { /* ignore logging errors */ }
   next();
 });
+
+// If Sentry is available and initialized, attach request handler early
+if (Sentry && Sentry.getCurrentHub && process.env.SENTRY_DSN) {
+  app.use(Sentry.Handlers.requestHandler());
+  app.use(Sentry.Handlers.tracingHandler());
+}
 
 // Serve frontend static pages (optional). This will make files under ./Frontend/pages
 // available at http://localhost:PORT/pages/<file>.html
@@ -257,6 +280,10 @@ app.use('*', (req, res) => {
 
 // Error handling middleware
 app.use((error, req, res, next) => {
+  // Capture error in Sentry if available
+  if (Sentry && process.env.SENTRY_DSN) {
+    try { Sentry.captureException(error); } catch (e) { /* noop */ }
+  }
   console.error(error && error.stack ? error.stack : error);
   const isProd = process.env.NODE_ENV === 'production';
   const message = isProd ? 'Something went wrong!' : (error && (error.message || error.toString()) ? (error.message || String(error)) : 'Something went wrong!');
@@ -265,6 +292,11 @@ app.use((error, req, res, next) => {
   const statusCode = (error && error.statusCode && Number.isInteger(error.statusCode)) ? error.statusCode : 500;
   res.status(statusCode).json(payload);
 });
+
+// If Sentry is available, use its error handler after ours to ensure proper event flushing
+if (Sentry && process.env.SENTRY_DSN) {
+  app.use(Sentry.Handlers.errorHandler());
+}
 
 // Only start server if not in test environment
 if (process.env.NODE_ENV !== 'test') {

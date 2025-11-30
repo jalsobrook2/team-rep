@@ -41,7 +41,7 @@ export default function App(){
         const now = Date.now()
         if(!lastAuthToastRef.current || (now - lastAuthToastRef.current) > 3000){
           lastAuthToastRef.current = now
-          toast('Please log in to access the requested page — you will be returned after login', 'info')
+          // Intentionally removed the prior generic auth toast
         }
       }catch(e){}
       setTab('auth')
@@ -88,7 +88,7 @@ export default function App(){
         const t = params.get('target')
         if(t){
           setPendingTarget(t)
-          toast('Please log in to access the requested page — you will be returned after login', 'info')
+          // Removed toast prompting to log in for requested page
         }
         setTab('auth')
         return
@@ -97,7 +97,7 @@ export default function App(){
         // If user is authenticated, go to dashboard; otherwise redirect to auth preserving target
         if(user){ setTab('dashboard'); return }
         setPendingTarget('dashboard')
-        toast('Please log in to access the requested page — you will be returned after login', 'info')
+        // Removed toast prompting to log in for requested page
         setTab('auth')
       }
       if(path === 'profile'){

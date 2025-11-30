@@ -49,7 +49,10 @@
     "mongoose": "^7.8.7",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "ws": "^8.13.0"
+    "ws": "^8.13.0",
+    "@sentry/node": "^7.70.0",
+    "@sentry/react": "^7.70.0",
+    "@sentry/tracing": "^7.70.0"
   },
   "devDependencies": {
     "@babel/core": "^7.28.5",

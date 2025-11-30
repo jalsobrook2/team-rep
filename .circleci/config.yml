@@ -8,6 +8,10 @@ jobs:
         environment:
           MONGO_INITDB_DATABASE: backend-example-test
     
+    environment:
+      # CI will pick up real DSNs from project settings; leave empty here
+      SENTRY_DSN: ""
+      VITE_SENTRY_DSN: ""
     steps:
       - checkout
       
