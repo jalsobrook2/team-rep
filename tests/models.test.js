@@ -137,7 +137,8 @@ describe('Job Model Validation', () => {
       description: 'This is a test job description',
       location: 'Remote',
       offer: 100,
-      owner: testWorker._id
+      owner: testWorker._id,
+      timeDue: new Date(Date.now() + 86400000) // 1 day from now
     });
     
     const saved = await job.save();
@@ -174,7 +175,8 @@ describe('Job Model Validation', () => {
       description: 'Testing default status',
       location: 'Remote',
       offer: 50,
-      owner: testWorker._id
+      owner: testWorker._id,
+      timeDue: new Date(Date.now() + 86400000)
     });
     
     const saved = await job.save();
@@ -191,7 +193,8 @@ describe('Job Model Validation', () => {
         location: 'Remote',
         offer: 50,
         owner: testWorker._id,
-        status
+        status,
+        timeDue: new Date(Date.now() + 86400000)
       });
       
       const saved = await job.save();
@@ -205,7 +208,8 @@ describe('Job Model Validation', () => {
       description: 'Testing applicants array',
       location: 'Remote',
       offer: 75,
-      owner: testWorker._id
+      owner: testWorker._id,
+      timeDue: new Date(Date.now() + 86400000)
     });
     
     const saved = await job.save();
@@ -218,7 +222,8 @@ describe('Job Model Validation', () => {
       description: 'Testing timestamps',
       location: 'Remote',
       offer: 60,
-      owner: testWorker._id
+      owner: testWorker._id,
+      timeDue: new Date(Date.now() + 86400000)
     });
     
     const saved = await job.save();
