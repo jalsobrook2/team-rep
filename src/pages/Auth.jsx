@@ -35,7 +35,7 @@ function RegisterForm(){
   async function submit(e){
     e.preventDefault();
     try{
-      const res = await auth.authFetch('/api/workers', { method: 'POST', body: JSON.stringify({ name, email, password, skills }) })
+      const res = await auth.authFetch('/api/auth/signup', { method: 'POST', body: JSON.stringify({ name, email, password, skills }) })
       const data = await res.json()
       if(res.ok && data.success){ toast('Account created','success'); } else { toast(data.error || 'Registration failed','error') }
   }catch(e){ toast(e.message || 'Registration failed','error') }

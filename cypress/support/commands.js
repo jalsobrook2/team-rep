@@ -19,6 +19,34 @@ Cypress.Commands.add('login', (email, password) => {
 });
 
 /**
+ * Demo login command - uses API to login and sets tokens in localStorage
+ * Then navigates to dashboard after page reload to ensure React picks up auth state
+ * @example cy.demoLogin() // uses default demo@pocketjob.test
+ * @example cy.demoLogin('alice@demo.test')
+ */
+Cypress.Commands.add('demoLogin', (email = 'demo@pocketjob.test') => {
+  cy.request({
+    method: 'POST',
+    url: '/api/auth/demo-login',
+    body: { email },
+  }).then((response) => {
+    expect(response.status).to.eq(200);
+    const accessToken = response.body.accessToken || response.body.data?.accessToken;
+    const refreshToken = response.body.refreshToken || response.body.data?.refreshToken;
+    if (accessToken) window.localStorage.setItem('accessToken', accessToken);
+    if (refreshToken) window.localStorage.setItem('refreshToken', refreshToken);
+  });
+  // Reload page so React picks up the token from localStorage
+  cy.reload();
+  // Wait for the Logout button to appear, confirming logged-in state
+  cy.contains('button', /logout/i, { timeout: 10000 }).should('be.visible');
+  // Navigate to dashboard
+  cy.contains('button', /dashboard/i).click();
+  // Wait for dashboard to load
+  cy.get('[data-testid="dashboard-title"]', { timeout: 10000 }).should('be.visible');
+});
+
+/**
  * Signup command
  * @example cy.signup('Test User', 'test@example.com', 'password123', 'coding')
  */

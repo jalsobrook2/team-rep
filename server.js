@@ -5,11 +5,52 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
+// Initialize Sentry for error monitoring (must be done before app creation)
+const Sentry = require('@sentry/node');
+
+// Initialize Sentry with DSN from environment
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: process.env.NODE_ENV || 'development',
+    tracesSampleRate: 1.0, // Capture 100% of transactions for performance monitoring
+    profilesSampleRate: 1.0,
+    integrations: [
+      // Enable HTTP request tracing
+      Sentry.httpIntegration(),
+      // Enable Express.js integration
+      Sentry.expressIntegration(),
+    ],
+    // Filter out health check endpoints from error reporting
+    beforeSend(event) {
+      if (event.request?.url?.includes('/api/health')) {
+        return null;
+      }
+      return event;
+    },
+  });
+  console.log('Sentry initialized for error monitoring');
+} else {
+  console.log('Sentry DSN not configured - error monitoring disabled');
+}
+
 const app = express();
 const path = require('path');
 const PORT = process.env.PORT || 3000;
 
+// Import middleware
+const requestId = require('./middleware/requestId');
+const { authLimiter, apiLimiter } = require('./middleware/rateLimiter');
+
 // Middleware
+// Add Sentry request handler first (must be before any other middleware)
+if (process.env.SENTRY_DSN) {
+  app.use(Sentry.expressIntegration().setupExpressErrorHandler(app));
+}
+
+// Request ID middleware for error correlation
+app.use(requestId);
+
 app.use(cors({
   // Vite dev server default is 5173; prefer that for local development unless overridden
   origin: process.env.CLIENT_URL || 'http://localhost:5173',
@@ -18,6 +59,9 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Apply rate limiting to API routes
+app.use('/api/', apiLimiter);
 
 // Serve frontend static pages (optional). This will make files under ./Frontend/pages
 // available at http://localhost:PORT/pages/<file>.html
@@ -143,12 +187,14 @@ const jobRoutes = require('./routes/jobRoutes');
 const workerRoutes = require('./routes/workerRoutes');
 const authRoutes = require('./routes/authRoutes');
 const messageRoutes = require('./routes/messageRoutes');
+const testRoutes = require('./routes/testRoutes');
 
-// Mount auth routes first (before protected routes)
-app.use('/api/auth', authRoutes);
+// Mount auth routes first (before protected routes) with rate limiting
+app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api', jobRoutes);
 app.use('/api', workerRoutes);
 app.use('/api', messageRoutes);
+app.use('/api', testRoutes);
 
 // Serve built Vite client in production (dist)
 if (process.env.NODE_ENV === 'production') {
@@ -189,16 +235,45 @@ app.get('/', (req, res) => {
 app.use('*', (req, res) => {
   res.status(404).json({
     success: false,
-    error: 'Route not found'
+    error: 'Route not found',
+    requestId: req.requestId
   });
 });
 
+// Sentry error handler (must be before other error handlers)
+if (process.env.SENTRY_DSN) {
+  app.use(Sentry.Handlers.errorHandler({
+    shouldHandleError(error) {
+      // Capture all errors with status >= 400
+      return !error.status || error.status >= 400;
+    },
+  }));
+}
+
 // Error handling middleware
 app.use((error, req, res, next) => {
-  console.error(error.stack);
-  res.status(500).json({
+  console.error(`[${req.requestId || 'no-id'}] Error:`, error.stack);
+  
+  // Capture error to Sentry with request context
+  if (process.env.SENTRY_DSN) {
+    Sentry.withScope((scope) => {
+      scope.setTag('request_id', req.requestId);
+      scope.setUser({ id: req.userId || 'anonymous' });
+      scope.setContext('request', {
+        method: req.method,
+        url: req.url,
+        headers: req.headers,
+        body: req.body
+      });
+      Sentry.captureException(error);
+    });
+  }
+  
+  const statusCode = error.statusCode || 500;
+  res.status(statusCode).json({
     success: false,
-    error: 'Something went wrong!'
+    error: process.env.NODE_ENV === 'production' ? 'Something went wrong!' : error.message,
+    requestId: req.requestId
   });
 });
 

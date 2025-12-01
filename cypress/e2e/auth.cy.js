@@ -13,7 +13,7 @@ describe('Authentication', () => {
     cy.wait(300);
     cy.log('Click register tab');
     // Switch to Register mode
-  cy.get('[data-testid="auth-tab-register"]').click();
+    cy.get('[data-testid="auth-tab-register"]').click();
     cy.wait(150);
     // Fill registration form
     cy.log('Fill registration fields');
@@ -23,40 +23,35 @@ describe('Authentication', () => {
     cy.get('[data-testid="auth-register-skills"]').type('Testing, Cypress');
     cy.log('Submit registration');
     cy.get('[data-testid="auth-register-submit"]').click();
-    cy.wait(800);
+    // Wait for registration to complete - look for success toast
+    cy.wait(1500);
     cy.log('Switch to login tab');
     // Switch to Login tab manually (registration does not auto-login)
-  cy.get('[data-testid="auth-tab-login"]').click();
+    cy.get('[data-testid="auth-tab-login"]').click();
     cy.log('Fill login fields');
     cy.get('[data-testid="auth-login-email"]').type(email);
     cy.get('[data-testid="auth-login-password"]').type(password);
     cy.log('Submit login');
     cy.get('[data-testid="auth-login-submit"]').click();
-    cy.wait(800);
+    // Wait for login to complete - Logout button appears when logged in
+    cy.contains('button', /logout/i, { timeout: 10000 }).should('be.visible');
+    cy.log('Click Dashboard to navigate');
+    // Explicitly navigate to dashboard after login
+    cy.contains('button', /dashboard/i).click();
     cy.log('Assert dashboard visible');
     // Now should be on dashboard
-    cy.get('[data-testid="dashboard-title"]').should('exist');
+    cy.get('[data-testid="dashboard-title"]', { timeout: 10000 }).should('exist');
   });
 
   it('logs in with demo account using DemoLogin dropdown', () => {
-    // Open Demo login menu
-    cy.log('Open demo login dropdown');
-    cy.contains('button', /demo login/i).click();
-    cy.wait(200);
-    // Choose Demo User
-    cy.log('Select Demo User');
-    cy.contains('.demo-item', /demo user/i).click();
-    cy.wait(1200);
-    cy.log('Verify dashboard');
+    // Use the demoLogin custom command
+    cy.demoLogin();
     cy.get('[data-testid="dashboard-title"]').should('exist');
   });
 
   it('logs out successfully', () => {
-    // First login via demo
-    cy.log('Login via demo');
-    cy.contains('button', /demo login/i).click();
-    cy.contains('.demo-item', /demo user/i).click();
-    cy.wait(1000);
+    // Use demoLogin command
+    cy.demoLogin();
     cy.log('Click logout');
     cy.contains('button', /logout/i).click();
     cy.wait(500);

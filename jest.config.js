@@ -11,6 +11,9 @@ module.exports = {
   testMatch: [
     '**/tests/**/*.test.js'
   ],
+  transformIgnorePatterns: [
+    'node_modules/(?!(uuid)/)'
+  ],
   verbose: true,
   testTimeout: 60000,
   coverageThreshold: {

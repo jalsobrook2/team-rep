@@ -1,9 +1,10 @@
 import React from 'react'
+import * as Sentry from '@sentry/react'
 
 export default class ErrorBoundary extends React.Component {
   constructor(props){
     super(props)
-    this.state = { error: null, info: null }
+    this.state = { error: null, info: null, eventId: null }
   }
 
   componentDidCatch(error, info){
@@ -11,6 +12,17 @@ export default class ErrorBoundary extends React.Component {
     this.setState({ error, info })
     // Also log to console for developers
     console.error('ErrorBoundary caught:', error, info)
+    
+    // Report to Sentry if available
+    try {
+      Sentry.withScope((scope) => {
+        scope.setExtra('componentStack', info.componentStack);
+        const eventId = Sentry.captureException(error);
+        this.setState({ eventId });
+      });
+    } catch (e) {
+      // Sentry not available
+    }
   }
 
   render(){
@@ -24,6 +36,22 @@ export default class ErrorBoundary extends React.Component {
             <summary>Show stack</summary>
             <pre style={{whiteSpace:'pre-wrap'}}>{this.state.info && this.state.info.componentStack}</pre>
           </details>
+          {this.state.eventId && (
+            <div style={{marginTop:16}}>
+              <button 
+                onClick={() => Sentry.showReportDialog({ eventId: this.state.eventId })}
+                style={{padding:'10px 20px',borderRadius:8,background:'#06a0db',color:'#fff',border:'none',cursor:'pointer'}}
+              >
+                Report Feedback
+              </button>
+            </div>
+          )}
+          <button 
+            onClick={() => window.location.reload()} 
+            style={{marginTop:16,padding:'10px 20px',borderRadius:8,background:'#073044',color:'#fff',border:'none',cursor:'pointer'}}
+          >
+            Reload Page
+          </button>
         </div>
       )
     }
