@@ -1,3 +1,4 @@
+/* eslint-disable cypress/no-unnecessary-waiting */
 /**
  * E2E Tests for Mobile Responsiveness
  * Tests core flows on mobile viewport (375x667 - iPhone SE)

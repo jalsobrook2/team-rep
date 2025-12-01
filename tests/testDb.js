@@ -28,14 +28,14 @@ const clear = async () => {
   if (!connection || !connection.db) return;
   const collections = await connection.db.collections();
   for (const collection of collections) {
-    try { await collection.deleteMany({}); } catch (_) {}
+    try { await collection.deleteMany({}); } catch (_) { /* ignore errors */ }
   }
 };
 
 const close = async () => {
   await mongoose.connection.close();
   if (mongod) {
-    try { await mongod.stop(); } catch (_) {}
+    try { await mongod.stop(); } catch (_) { /* ignore errors */ }
     mongod = null;
   }
 };

@@ -1,3 +1,4 @@
+/* eslint-disable cypress/no-unnecessary-waiting */
 /**
  * E2E Tests for Job Management User Stories
  * Covers: Assign worker, kick worker, start/complete job, view applicants

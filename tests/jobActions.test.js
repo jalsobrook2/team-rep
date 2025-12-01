@@ -6,6 +6,7 @@ const Worker = require('../models/Worker');
 const Job = require('../models/Job');
 
 describe('Job Actions: Apply, Assign, Kick, Unassign-Self', () => {
+  // eslint-disable-next-line no-unused-vars
   let ownerToken, worker1Token, worker2Token, ownerId, worker1Id, worker2Id, jobId;
 
   beforeAll(async () => {

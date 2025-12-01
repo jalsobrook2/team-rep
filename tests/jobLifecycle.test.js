@@ -8,6 +8,7 @@ const Job = require('../models/Job');
 let mongoAvailable = true;
 
 describe('Job lifecycle: create → accept → start → complete → cancel', () => {
+  // eslint-disable-next-line no-unused-vars
   let posterToken, workerToken, posterId, workerId, jobId, jobId2;
 
   beforeAll(async () => {

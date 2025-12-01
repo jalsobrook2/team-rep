@@ -1,3 +1,4 @@
+/* eslint-disable cypress/no-unnecessary-waiting */
 /**
  * E2E Tests for Error Scenarios
  * Covers: Invalid login, duplicate registration, protected routes

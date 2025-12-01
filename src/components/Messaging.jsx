@@ -100,7 +100,7 @@ export default function Messaging(){
         setConvo(data.data || [])
         // after loading messages, optionally mark read
         if(opts.markRead){
-          try{ if(DEBUG) console.debug('[Messaging] mark as read ->', idStr); await authFetch(`/api/messages/conversation/${idStr}/read`, { method:'POST' }) }catch(e){}
+          try{ if(DEBUG) console.debug('[Messaging] mark as read ->', idStr); await authFetch(`/api/messages/conversation/${idStr}/read`, { method:'POST' }) }catch(e){ /* ignore mark-read errors */ }
           // refresh inbox to pick up updated unread counts
           loadInbox()
         }

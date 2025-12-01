@@ -8,6 +8,7 @@ const Job = require('../models/Job');
 let mongoAvailable = true;
 
 describe('Acceptance flow', () => {
+  // eslint-disable-next-line no-unused-vars
   let posterToken, accepterToken, jobId, posterId, accepterId;
 
   beforeAll(async () => {

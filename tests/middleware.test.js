@@ -24,10 +24,10 @@ describe('Middleware Unit Tests', () => {
 
     it('should catch async errors and pass to error handler', async () => {
       const app = express();
-      app.get('/test', asyncHandler(async (req, res) => {
+      app.get('/test', asyncHandler(async (_req, _res) => {
         throw new Error('Test error');
       }));
-      app.use((err, req, res, next) => {
+      app.use((err, req, res, _next) => {
         res.status(500).json({ error: err.message });
       });
 
@@ -38,10 +38,10 @@ describe('Middleware Unit Tests', () => {
 
     it('should handle rejected promises', async () => {
       const app = express();
-      app.get('/test', asyncHandler(async (req, res) => {
+      app.get('/test', asyncHandler(async (_req, _res) => {
         return Promise.reject(new Error('Promise rejected'));
       }));
-      app.use((err, req, res, next) => {
+      app.use((err, req, res, _next) => {
         res.status(500).json({ error: err.message });
       });
 
@@ -130,8 +130,7 @@ describe('Validation Middleware', () => {
   const { 
     signupValidation, 
     loginValidation, 
-    createJobValidation,
-    handleValidationErrors 
+    createJobValidation
   } = require('../middleware/validation');
 
   describe('signupValidation', () => {

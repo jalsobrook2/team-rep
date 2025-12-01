@@ -1,3 +1,4 @@
+/* eslint-disable cypress/no-unnecessary-waiting */
 /**
  * E2E Tests for Profile/Dashboard User Stories
  * Covers: View dashboard, view posted/accepted jobs, worker list

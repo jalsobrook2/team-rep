@@ -145,7 +145,7 @@ if (process.env.NODE_ENV !== 'test') {
                 await demo.save();
 
                 // Generate tokens and store refresh token for demo account
-                const accessToken = jwt.sign({ id: demo._id }, JWT_ACCESS_SECRET, { expiresIn: '1h' });
+                jwt.sign({ id: demo._id }, JWT_ACCESS_SECRET, { expiresIn: '1h' });
                 const refreshToken = jwt.sign({ id: demo._id }, JWT_REFRESH_SECRET, { expiresIn: '30d' });
                 demo.refreshTokens.push({ token: refreshToken, device: 'demo-seed' });
                 await demo.save();
@@ -251,7 +251,7 @@ if (process.env.SENTRY_DSN) {
 }
 
 // Error handling middleware
-app.use((error, req, res, next) => {
+app.use((error, req, res, _next) => {
   console.error(`[${req.requestId || 'no-id'}] Error:`, error.stack);
   
   // Capture error to Sentry with request context

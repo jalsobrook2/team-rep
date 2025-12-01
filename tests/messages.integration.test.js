@@ -2,8 +2,7 @@
 process.env.NODE_ENV = 'test';
 
 const request = require('supertest');
-const mongoose = require('mongoose');
-const { connect, clear, close } = require('./testDb');
+const { connect, close } = require('./testDb');
 
 let app;
 

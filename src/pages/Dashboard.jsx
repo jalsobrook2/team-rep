@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState } from 'react'
 import WorkerCard from '../components/WorkerCard'
 import Messaging from '../components/Messaging'
 import { useToast, useConfirm } from '../components/UiProvider'
@@ -7,7 +7,7 @@ import { useAuth } from '../AuthContext'
 export default function Dashboard(){
   const toast = useToast()
   const confirm = useConfirm()
-  const { authFetch, token, user } = useAuth()
+  const { authFetch, user } = useAuth()
   const [tab, setTab] = useState('workers')
   const [workers, setWorkers] = useState([])
   const [pageInfo, setPageInfo] = useState({page:1,totalPages:1,totalCount:0})
@@ -26,18 +26,9 @@ export default function Dashboard(){
     loadAcceptedJobs()
   },[])
 
-  function getCurrentUserId(){
-    try{ const p = token ? JSON.parse(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))) : null; return p ? (p.id || p._id || p.sub) : null }catch(e){ return null }
-  }
-
   const [applicantsJobId, setApplicantsJobId] = useState(null)
   const [applicantsList, setApplicantsList] = useState([])
   const [loadingApplicants, setLoadingApplicants] = useState(false)
-
-  function refreshAuthUI(){
-    if(token){ try{ const payload = token ? JSON.parse(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))) : null; if(payload) setWho(payload.name || payload.email || payload.id || payload.sub); else setWho('Logged in') }catch(e){ setWho('Logged in') } }
-    else setWho('Not logged in')
-  }
 
   async function loadWorkers(page=1, limit=6){
     const res = await authFetch(`/api/workers?page=${page}&limit=${limit}`)
@@ -238,7 +229,7 @@ export default function Dashboard(){
 
         <section id="accepted" className={`panel ${tab==='accepted' ? 'active' : ''}`}>
           <h2>Accepted Jobs</h2>
-          <p className="small">Jobs you've accepted to work on. Shows description, location, offer, owner and timestamps.</p>
+          <p className="small">Jobs you&apos;ve accepted to work on. Shows description, location, offer, owner and timestamps.</p>
           <div id="acceptedJobsList" className="list">
             {acceptedJobs.map(j => (
               <div className="card" key={j._id}>

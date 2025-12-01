@@ -77,9 +77,6 @@ export default function App(){
     return ()=> window.removeEventListener('hashchange', handleHashChange)
   },[user, toast])
 
-  function parseJwt(token){
-    try{ const payload = token.split('.')[1]; return JSON.parse(atob(payload.replace(/-/g,'+').replace(/_/g,'/'))) }catch(e){ return null }
-  }
   return (
     <div style={{maxWidth:980,margin:'0 auto',padding:16}}>
       <header style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
@@ -104,7 +101,7 @@ export default function App(){
               await logout()
               setPendingTarget(null)
               setTab('home')
-              try{ window.location.hash = '' }catch(e){}
+              try{ window.location.hash = '' }catch(e){ /* ignore hash errors */ }
               toast('Logged out','success')
             }} style={{marginLeft:12}}>Logout</button>
           )}

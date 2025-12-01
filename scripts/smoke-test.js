@@ -10,10 +10,6 @@ const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3000'
 const TIMEOUT = parseInt(process.env.SMOKE_TIMEOUT || '5000', 10)
 const axios = require('axios')
 
-function timeoutPromise(ms, msg){
-  return new Promise((_, rej) => setTimeout(() => rej(new Error(msg)), ms))
-}
-
 async function checkUrl(url, opts={expectJson:false, expectContains:null}){
   try{
     const res = await axios.get(url, { timeout: TIMEOUT, responseType: 'text', validateStatus: () => true })

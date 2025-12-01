@@ -1,3 +1,4 @@
+/* eslint-disable cypress/no-unnecessary-waiting */
 describe('Workflow', () => {
   it('registers then lands on dashboard', () => {
     cy.visit('/');

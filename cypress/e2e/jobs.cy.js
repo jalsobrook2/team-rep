@@ -1,3 +1,4 @@
+/* eslint-disable cypress/no-unnecessary-waiting */
 /**
  * E2E Tests for Jobs User Stories
  * Covers: Search jobs, view details, apply to job, post job

@@ -402,6 +402,7 @@ describe('Authentication Tests', () => {
   });
 
   describe('POST /api/auth/refresh - Token Refresh', () => {
+    // eslint-disable-next-line no-unused-vars
     let accessToken;
     let refreshToken;
 

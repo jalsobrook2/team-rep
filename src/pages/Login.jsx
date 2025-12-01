@@ -11,7 +11,7 @@ export default function Login(){
   async function submit(e){
     e.preventDefault();
     try{
-      const data = await loginWithCredentials(email, password)
+      await loginWithCredentials(email, password)
       // loginWithCredentials throws on failure, so we reach here on success
       toast('Logged in successfully','success')
     }catch(e){

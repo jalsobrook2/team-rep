@@ -1,3 +1,4 @@
+/* eslint-disable cypress/no-unnecessary-waiting */
 /**
  * E2E Tests for Messaging User Stories
  * Covers: Send message, view conversations, mark as read
