@@ -73,7 +73,7 @@ jobs:
           exit 1
       
       - name: Run unit tests with coverage
-        run: npm run test:coverage
+        run: npm run test:coverage -- --runInBand
         env:
           NODE_ENV: test
           MONGODB_URI_TEST: mongodb://localhost:27017/backend-example-test
