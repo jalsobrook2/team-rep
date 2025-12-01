@@ -2,18 +2,28 @@
  * Unit tests for Model validations
  */
 const mongoose = require('mongoose');
-const { MongoMemoryServer } = require('mongodb-memory-server');
 
 let mongoServer;
 
 beforeAll(async () => {
-  mongoServer = await MongoMemoryServer.create();
-  await mongoose.connect(mongoServer.getUri());
+  // In CI, use the external MongoDB service; locally use mongodb-memory-server
+  const useExternal = !!process.env.MONGODB_URI_TEST || process.env.CI === 'true';
+  
+  if (useExternal) {
+    const uri = process.env.MONGODB_URI_TEST || 'mongodb://localhost:27017/backend-example-test';
+    await mongoose.connect(uri);
+  } else {
+    const { MongoMemoryServer } = require('mongodb-memory-server');
+    mongoServer = await MongoMemoryServer.create();
+    await mongoose.connect(mongoServer.getUri());
+  }
 });
 
 afterAll(async () => {
   await mongoose.disconnect();
-  await mongoServer.stop();
+  if (mongoServer) {
+    await mongoServer.stop();
+  }
 });
 
 // Import models after connection

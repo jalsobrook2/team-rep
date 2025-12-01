@@ -12,20 +12,17 @@ describe('Job lifecycle: create → accept → start → complete → cancel', (
   let posterToken, workerToken, posterId, workerId, jobId, jobId2;
 
   beforeAll(async () => {
-    // Prefer a local host when running tests outside Docker. If no test URI
-    // is supplied, start an in-memory MongoDB instance so tests can run
-    // without Docker.
-    const envTestUri = process.env.MONGODB_URI_TEST;
-    const runningInDocker = process.env.DOCKER === 'true' || process.env.CONTAINER === 'true' || process.env.MONGO_HOST === 'mongo';
-    let testDbUri = envTestUri;
-    if (!testDbUri) {
+    // In CI, use the external MongoDB service; locally use mongodb-memory-server
+    const useExternal = !!process.env.MONGODB_URI_TEST || process.env.CI === 'true';
+    let testDbUri;
+    
+    if (useExternal) {
+      testDbUri = process.env.MONGODB_URI_TEST || 'mongodb://localhost:27017/backend-example-test';
+    } else {
       const { MongoMemoryServer } = require('mongodb-memory-server');
       const mongod = await MongoMemoryServer.create();
       global.__MONGO_SERVER__ = mongod;
       testDbUri = mongod.getUri();
-      process.env.MONGODB_URI_TEST = testDbUri;
-    } else if (!runningInDocker && envTestUri && envTestUri.includes('mongo')) {
-      testDbUri = envTestUri.replace(/mongodb:\/\/(?:[^:/]+)(:?)/, 'mongodb://127.0.0.1$1');
     }
 
     if (mongoose.connection.readyState !== 0) await mongoose.disconnect();
